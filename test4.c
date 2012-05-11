@@ -9,6 +9,7 @@ int main()
 	pa_num *x, *n;
 	int gamma = -1;
 	int ind;
+	int i, j;
 	complex res;
 
 	printf("Test#3: Wavelet functions\n");
@@ -25,25 +26,33 @@ int main()
 
 	res = character(pa);
 	printf("Character: %g + i%g\n", creal(res), cimag(res));
+	free_pa_num(pa);
 
-	x = init_pa_num(-1,0);
-	x->x[0] = 1;
-	x->x[1] = 1;
-	print_pa_num(x);
-	printf("x >> %g\n", from_canonic_to_float(x));
+	for (i = 0; i < P; i++) {
+		x = init_pa_num(-1,0);
+		x->x[0] = 1;
+		x->x[1] = i;
+		print_pa_num(x);
+		printf("x >> %g\n", from_canonic_to_float(x));
 
-	n = init_pa_num(-1, -1);
-	n->x[0] = 1;
-	print_pa_num(n);
-	printf("n >> %g\n", from_canonic_to_float(n));
+		n = init_pa_num(-1, -1);
+		n->x[0] = 1;
+		print_pa_num(n);
+		printf("n >> %g\n", from_canonic_to_float(n));
 
-	gamma = 0;
+		gamma = 0;
 
-	ind = indicator(x, n, gamma);
-	printf("gamma = %d, indicator = %d\n\n", gamma, ind);
+		ind = indicator(x, n, gamma);
+		printf("gamma = %d, indicator = %d\n", gamma, ind);
 
-	res = wavelet(x, n, gamma, 1);
-	printf(">>%g + i%g\n", creal(res), cimag(res));
+		for (j = 1; j < P; j++) {
+			res = wavelet(x, n, gamma, j);
+			printf("(j = %d) >> %g + i%g\n", j, creal(res), cimag(res));
+		}
+		printf("\n");
+		free_pa_num(x);
+		free_pa_num(n);
+	}
 
 	return 0;
 }

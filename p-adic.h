@@ -62,7 +62,9 @@ pa_num* get_fractional_part(pa_num *pa);
 
 complex character(pa_num *pa);
 
-complex wavelet(pa_num *x, pa_num *n, int gamma);
+complex wavelet(pa_num *x, pa_num *n, int gamma, int j);
+
+pa_num* smult(pa_num *pa1, int j);
 
 pa_num* mult(pa_num *pa1, pa_num *pa2);
 

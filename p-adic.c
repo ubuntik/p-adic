@@ -276,16 +276,19 @@ complex character(pa_num *pa)
 	return ret;
 }
 
-complex wavelet(pa_num *x, pa_num *n, int gamma)
+complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 {
 	pa_num *kern;
+	pa_num *jkern;
 	pa_num *mult, *subtr;
 	complex ret;
 
 	mult = p_gamma_pa_num(x, gamma);
 	subtr = minus(mult, n);
 	kern = p_gamma_pa_num(subtr, -1);
-	ret = character(kern) * indicator(x, n, gamma);
+	jkern = smult(kern, j);
+	ret = character(jkern) * indicator(x, n, gamma);
+	free_pa_num(jkern);
 	free_pa_num(kern);
 	free_pa_num(mult);
 	free_pa_num(subtr);
@@ -293,9 +296,29 @@ complex wavelet(pa_num *x, pa_num *n, int gamma)
 	return creal(ret) + I * cimag(ret);
 }
 
+/* workaround for wavelet: suppose (0 < j < P) and (pa > 0) */
+pa_num* smult(pa_num *pa, int j)
+{
+	pa_num *ret;
+	int i, tmp, in_mind = 0;
+
+	ret = init_pa_num(pa->g_min, pa->g_max + 1);
+
+	for (i = ret->g_min; i <= ret->g_max; i++) {
+		tmp = get_x_by_gamma(pa, i) * j + in_mind;
+		(tmp >= P) ? set_x_by_gamma(ret, i, tmp - P) : \
+			set_x_by_gamma(ret, i, tmp);
+		in_mind = (tmp >= P) ? 1 : 0;
+	}
+
+	return ret;
+}
+
 pa_num* mult(pa_num *pa1, pa_num *pa2)
 {
+	pa_num *ret;
 
+	ret = init_pa_num(pa1->g_min + pa2->g_min, pa1->g_max + pa2->g_max);
 
 	return 0;
 }
