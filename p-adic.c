@@ -319,8 +319,41 @@ pa_num* mult(pa_num *pa1, pa_num *pa2)
 	pa_num *ret;
 
 	ret = init_pa_num(pa1->g_min + pa2->g_min, pa1->g_max + pa2->g_max);
+	printf("Not implemented yet\n");
 
 	return 0;
+}
+
+float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
+{
+	float ret = 0, tmp;
+	int fs_sz, i;
+	pa_num **fs;
+	pa_num *pa;
+	float (*pfunc)(pa_num *pnum);
+
+	fs_sz = (size_t)fspace_sz(g_min, g_max);
+	fs = gen_factor_space(g_min, g_max);
+	pfunc = func;
+
+	for (i = 0; i < fs_sz; i++) {
+		// ?????????????????
+		pa = p_gamma_pa_num(fs[i], g_max);
+		printf("Number %d:\n", i);
+		printf("Canonical view coefficients:\n");
+		print_pa_num(pa);
+		printf("User friendly view:\n");
+		printf("%g\n", from_canonic_to_float(pa));
+		tmp = (float)pfunc(pa);
+		printf("TMP %f\n", tmp);
+		ret += tmp;
+		//printf("===============================\n");
+		free_pa_num(pa);
+		free_pa_num(fs[i]);
+	}
+	//printf(">>>>>> SUM >>>>>>>> %f\n", ret);
+
+	return ret * (float)pow(P, g_min);
 }
 
 #if 0

@@ -66,6 +66,9 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j);
 
 pa_num* smult(pa_num *pa1, int j);
 
+float integral(float (*func)(pa_num* pnum), int g_min, int g_max);
+
+/* Not implemented yet */
 pa_num* mult(pa_num *pa1, pa_num *pa2);
 
 /*TODO*/
