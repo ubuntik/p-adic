@@ -11,7 +11,7 @@
 #include <math.h>
 #include <complex.h>
 
-#define P 3
+#define P 2
 #define PI 3.14159265358979323846f
 
 enum PADIC_ERR {EINIT = 0,

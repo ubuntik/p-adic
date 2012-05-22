@@ -8,7 +8,7 @@ long fspace_sz(int g_min, int g_max)
 	int i;
 	int xsz = g_max - g_min;
 
-	for (i = 0; i <= xsz; i++)
+	for (i = 0; i < xsz; i++)
 		ret = ret * P;
 	return ret;
 }
@@ -44,9 +44,9 @@ int get_x_by_gamma(pa_num* pa, int gamma)
 int set_x_by_gamma(pa_num* pa, int gamma, int x)
 {
 	if (gamma < pa->g_min || gamma > pa->g_max) {
-		printf("Invalid Value gamma: %d\n", gamma);
-		printf("gamma should be greater than %d\n", pa->g_min);
-		printf("gamma should be less than %d\n", pa->g_max);
+		fprintf(stderr, "Invalid Value gamma: %d\n", gamma);
+		fprintf(stderr, "gamma should be greater than %d\n", pa->g_min);
+		fprintf(stderr, "gamma should be less than %d\n", pa->g_max);
 		return pa->err = EGOUT;
 	}
 	pa->x[gamma - pa->g_min] = x;
@@ -162,7 +162,6 @@ pa_num** gen_factor_space(int g_min, int g_max)
 	}
 
 	div = 1;
-	//for (k = min; k < 0; k++) {
 	for (k = -1; k >= min; k--) {
 		n = 0;
 		ngrp = fs_sz / (div * P) ;
@@ -270,7 +269,7 @@ complex character(pa_num *pa)
 	complex ret;
 
 	fnum = get_fractional_part(pa);
-	ret = cexp(2.0 * PI * I * 
+	ret = cexp(2.0 * PI * I * \
 			from_canonic_to_float(fnum));
 	free_pa_num(fnum);
 	return ret;
@@ -326,7 +325,7 @@ pa_num* mult(pa_num *pa1, pa_num *pa2)
 
 float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
 {
-	float ret = 0, tmp;
+	float ret;
 	int fs_sz, i;
 	pa_num **fs;
 	pa_num *pa;
@@ -336,23 +335,14 @@ float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
 	fs = gen_factor_space(g_min, g_max);
 	pfunc = func;
 
+	ret = 0;
 	for (i = 0; i < fs_sz; i++) {
-		// ?????????????????
-		pa = p_gamma_pa_num(fs[i], g_max);
-		printf("Number %d:\n", i);
-		printf("Canonical view coefficients:\n");
-		print_pa_num(pa);
-		printf("User friendly view:\n");
-		printf("%g\n", from_canonic_to_float(pa));
-		tmp = (float)pfunc(pa);
-		printf("TMP %f\n", tmp);
-		ret += tmp;
-		//printf("===============================\n");
+		pa = p_gamma_pa_num(fs[i], -g_min);
+		ret += (float)pfunc(pa);
 		free_pa_num(pa);
 		free_pa_num(fs[i]);
 	}
-	//printf(">>>>>> SUM >>>>>>>> %f\n", ret);
-
+	free(fs);
 	return ret * (float)pow(P, g_min);
 }
 
