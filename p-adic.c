@@ -269,7 +269,7 @@ complex character(pa_num *pa)
 	complex ret;
 
 	fnum = get_fractional_part(pa);
-	ret = cexp(2.0 * PI * I * \
+	ret = cexpf(2.0 * PI * I * \
 			from_canonic_to_float(fnum));
 	free_pa_num(fnum);
 	return ret;
@@ -292,7 +292,7 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 	free_pa_num(mult);
 	free_pa_num(subtr);
 
-	return creal(ret) + I * cimag(ret);
+	return crealf(ret) + I * cimagf(ret);
 }
 
 /* workaround for wavelet: suppose (0 < j < P) and (pa > 0) */
@@ -344,6 +344,34 @@ float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
 	}
 	free(fs);
 	return ret * (float)pow(P, g_min);
+}
+
+complex wavelet_integral(pa_num *pnum, pa_num *n, int gamma, int j, \
+						int g_min, int g_max)
+{
+	complex ret;
+	float img = 0.f, rez = 0.f;
+	int fs_sz, i;
+	pa_num **fs;
+	pa_num *pa;
+
+	fs_sz = (size_t)fspace_sz(g_min, g_max);
+	fs = gen_factor_space(g_min, g_max);
+
+	for (i = 0; i < fs_sz; i++) {
+		pa = p_gamma_pa_num(fs[i], -g_min);
+		printf("n %d, %f\n", i, from_canonic_to_float(pa));
+		print_pa_num(pa);
+		rez += crealf(wavelet(pnum, n, gamma, j));
+		img += cimagf(wavelet(pnum, n, gamma, j));
+		printf("iter %d -- wv = %f + i * %f\n\n", i, rez, img);
+		free_pa_num(pa);
+		free_pa_num(fs[i]);
+	}
+	ret = rez * (float)pow(P, g_min) + I * img * (float)pow(P, g_min);
+	free(fs);
+	return ret;
+
 }
 
 #if 0

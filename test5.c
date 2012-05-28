@@ -20,10 +20,13 @@ int main()
 {
 	float res;
 	float (*pfunc)(pa_num* pnum);
-	int gmax, gmin;
+	int i, gmax, gmin, gamma, fs_sz;
+	pa_num **fs;
+	complex ret;
 
 	printf("Test#5: Integrals\n");
 
+#if 0
 	printf("\n>>> Indicator function <<<\n");
 	pfunc = wrapped_indicator;
 
@@ -47,6 +50,20 @@ int main()
 	for (gmax = 0; gmax < 15; gmax ++){
 		res = integral(pfunc, gmin, gmax);
 		printf("gmin = %d gmax = %d result = %f\n", gmin, gmax, res);
+	}
+#endif
+
+
+	printf("\n>>> wavelet basis <<<\n");
+	gamma = 0;
+	gmax = 1;
+	fs_sz = fspace_sz(gamma, gmax);
+	fs = gen_factor_space(gamma, gmax);
+	printf("fs sz = %d\n", fs_sz);
+	for (i = 0; i < fs_sz; i++) {
+		ret = wavelet_integral(fs[i], fs[i], gamma, 1, gamma - 1, gmax);
+		printf(">>>> %f + i * %f\n", crealf(ret), cimagf(ret));
+
 	}
 
 	return 0;
