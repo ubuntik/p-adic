@@ -3,11 +3,11 @@
 float wrapped_indicator(pa_num *pa)
 {
 	pa_num *n;
-	int gamma = 0;
+	int gamma = -1;
 	float ret;
 
-	n = init_pa_num(-1, -1);
-	set_x_by_gamma(n, -1, 1);
+	n = init_pa_num(-2, -2);
+	set_x_by_gamma(n, -2, 1);
 	ret = (float)indicator(pa, n, gamma);
 	free_pa_num(n);
 
@@ -16,15 +16,38 @@ float wrapped_indicator(pa_num *pa)
 
 float p_norma_wrapped(pa_num* pa) { return (float) p_norma(pa); }
 
+float function(pa_num* pa)
+{
+	float ret;
+	ret = wrapped_indicator(pa) * p_norma_wrapped(pa);
+	//ret = wrapped_indicator(pa);
+	return ret;
+}
+
 int main()
 {
 	float res;
+	float res1, res2, res3;
 	float (*pfunc)(pa_num* pnum);
 	int i, gmax, gmin, gamma, fs_sz;
 	pa_num **fs;
 	complex ret;
 
 	printf("Test#5: Integrals\n");
+
+	pfunc = function;
+	gmin = -1;
+	gmax = 0;
+	res1 = integral(pfunc, gmin, gmax);
+	gmin = -1;
+	gmax = 1;
+	res2 = integral(pfunc, gmin, gmax);
+	gmin = -1;
+	gmax = 2;
+	res3 = integral(pfunc, gmin, gmax);
+
+	printf("1: %f\n2: %f\n3: %f\n", res1, res2, res3);
+
 
 #if 0
 	printf("\n>>> Indicator function <<<\n");
@@ -53,7 +76,7 @@ int main()
 	}
 #endif
 
-
+#if 0
 	printf("\n>>> wavelet basis <<<\n");
 	gamma = 0;
 	gmax = 1;
@@ -65,6 +88,7 @@ int main()
 		printf(">>>> %f + i * %f\n", crealf(ret), cimagf(ret));
 
 	}
+#endif
 
 	return 0;
 }
