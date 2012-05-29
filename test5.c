@@ -46,10 +46,8 @@ int main()
 	gmax = 2;
 	res3 = integral(pfunc, gmin, gmax);
 
-	printf("1: %f\n2: %f\n3: %f\n", res1, res2, res3);
+	printf("Zp: %f\nB1: %f\nB2: %f\n", res1, res2, res3);
 
-
-#if 0
 	printf("\n>>> Indicator function <<<\n");
 	pfunc = wrapped_indicator;
 
@@ -65,31 +63,33 @@ int main()
 	pfunc = p_norma_wrapped;
 
 	gmax = 1;
-	for (gmin = 0; gmin > -15; gmin--){
+	for (gmin = 0; gmin > -10; gmin--){
 		res = integral(pfunc, gmin, gmax);
 		printf("gmin = %d gmax = %d result = %f\n", gmin, gmax, res);
 	}
 	gmin = -1;
-	for (gmax = 0; gmax < 15; gmax ++){
+	for (gmax = 0; gmax < 10; gmax ++){
 		res = integral(pfunc, gmin, gmax);
 		printf("gmin = %d gmax = %d result = %f\n", gmin, gmax, res);
 	}
-#endif
 
-#if 0
 	printf("\n>>> wavelet basis <<<\n");
-	gamma = 0;
-	gmax = 1;
-	fs_sz = fspace_sz(gamma, gmax);
-	fs = gen_factor_space(gamma, gmax);
-	printf("fs sz = %d\n", fs_sz);
-	for (i = 0; i < fs_sz; i++) {
-		ret = wavelet_integral(fs[i], fs[i], gamma, 1, gamma - 1, gmax);
-		printf(">>>> %f + i * %f\n", crealf(ret), cimagf(ret));
-
+	gmin = 2;
+	gmax = 5;
+	printf("Parameters: g_max = %d, g_min = %d\n", gmax, gmin);
+	for (gamma = gmin; gamma <= gmax; gamma++) {
+		printf("Current gamma: %d\n", gamma);
+		fs_sz = fspace_sz(gamma, gmax);
+		fs = gen_factor_space(gamma, gmax);
+		printf("The power of factor space: %d\n", fs_sz);
+		for (i = 0; i < fs_sz; i++) {
+			//ret = wavelet_integral(fs[i], gamma, 1, gamma - 1, gmax);
+			ret = wavelet_integral(fs[i], gamma, 1, gmin, gmax);
+			printf(">>> Result: %f + i * %f\n\n", crealf(ret), cimagf(ret));
+			free_pa_num(fs[i]);
+		}
+		free(fs);
 	}
-#endif
-
 	return 0;
 }
 

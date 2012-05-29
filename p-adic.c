@@ -346,25 +346,26 @@ float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
 	return ret * (float)pow(P, g_min);
 }
 
-complex wavelet_integral(pa_num *pnum, pa_num *n, int gamma, int j, \
-						int g_min, int g_max)
+complex wavelet_integral(pa_num *n, int gamma, int j, int g_min, int g_max)
 {
 	complex ret;
-	float img = 0.f, rez = 0.f;
-	int fs_sz, i;
+	float img = 0.f, rez = 0.f, tmp1, tmp2;
+	int fs_sz, i, gmin;
 	pa_num **fs;
 	pa_num *pa;
 
-	fs_sz = (size_t)fspace_sz(g_min, g_max);
-	fs = gen_factor_space(g_min, g_max);
+	/* for integration on the "level - 1" */
+	gmin = gamma - 1;
+	fs_sz = (size_t)fspace_sz(gmin, g_max);
+	fs = gen_factor_space(gmin, g_max);
 
 	for (i = 0; i < fs_sz; i++) {
-		pa = p_gamma_pa_num(fs[i], -g_min);
-		printf("n %d, %f\n", i, from_canonic_to_float(pa));
-		print_pa_num(pa);
-		rez += crealf(wavelet(pnum, n, gamma, j));
-		img += cimagf(wavelet(pnum, n, gamma, j));
-		printf("iter %d -- wv = %f + i * %f\n\n", i, rez, img);
+		pa = p_gamma_pa_num(fs[i], -gmin);
+		tmp1 = crealf(wavelet(pa, n, gamma, j));
+		tmp2 = cimagf(wavelet(pa, n, gamma, j));
+		printf("iter %d -- wv = %f + i * %f\n\n", i, tmp1, tmp2);
+		rez += tmp1;
+		img += tmp2;
 		free_pa_num(pa);
 		free_pa_num(fs[i]);
 	}
