@@ -1,7 +1,6 @@
 #include "p-adic.h"
 #define G_MAX 1
 #define G_MIN (-1)
-#define XSZ (G_MAX - G_MIN)
 
 int main()
 {

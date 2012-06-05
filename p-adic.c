@@ -16,6 +16,14 @@ long fspace_sz(int g_min, int g_max)
 pa_num* init_pa_num(int g_min, int g_max)
 {
 	pa_num *ret;
+	if (g_max < g_min) {
+		fprintf(stderr, "Invalid gammas' values:\n");
+		fprintf(stderr, "g_min = %d should be ", g_min);
+		fprintf(stderr, "less or equal than g_max = %d\n", g_max);
+		fflush(stderr);
+		ret->err = EGOUT;
+		exit(ret->err);
+	}
 	ret = (pa_num*)malloc(sizeof(pa_num));
 	ret->g_min = g_min;
 	ret->g_max = g_max;
@@ -47,7 +55,9 @@ int set_x_by_gamma(pa_num* pa, int gamma, int x)
 		fprintf(stderr, "Invalid Value gamma: %d\n", gamma);
 		fprintf(stderr, "gamma should be greater than %d\n", pa->g_min);
 		fprintf(stderr, "gamma should be less than %d\n", pa->g_max);
-		return pa->err = EGOUT;
+		fflush(stderr);
+		pa->err = EGOUT;
+		exit(pa->err);
 	}
 	pa->x[gamma - pa->g_min] = x;
 	return EINIT;
@@ -62,17 +72,19 @@ pa_num* __extend_number(pa_num *pa, int g_min, int g_max)
 	ret = init_pa_num(g_min, g_max);
 
 	if (g_min > pa->g_min) {
-		printf("Invalid Value g_min: %d\n", g_min);
-		printf("g_min should be greater than %d\n", pa->g_min);
+		fprintf(stderr, "Invalid Value g_min: %d\n", g_min);
+		fprintf(stderr, "g_min should be greater than %d\n", pa->g_min);
+		fflush(stderr);
 		ret->err = EGOUT;
-		exit(-1);
+		exit(ret->err);
 	}
 
 	if (g_max < pa->g_max) {
-		printf("Invalid Value g_max: %d\n", g_max);
-		printf("g_max should be less than %d\n", pa->g_max);
+		fprintf(stderr, "Invalid Value g_max: %d\n", g_max);
+		fprintf(stderr, "g_max should be less than %d\n", pa->g_max);
+		fflush(stderr);
 		ret->err = EGOUT;
-		exit(-1);
+		exit(ret->err);
 	}
 
 	for (i = g_min; i <= g_max; i++) {
@@ -196,12 +208,13 @@ void print_pa_num(pa_num *pa)
 {
 	int i;
 	for (i = pa->g_min; i <= pa->g_max; i++) {
-		printf("x[%d] = %d\t", i, get_x_by_gamma(pa, i));
+		fprintf(stdout, "x[%d] = %d\t", i, get_x_by_gamma(pa, i));
 	}
-	printf("\n");
+	fprintf(stdout, "\n");
+	fflush(stdout);
 }
 
-int p_norma(pa_num *pa)
+float p_norma(pa_num *pa)
 {
 	int i, res;
 
@@ -214,7 +227,14 @@ int p_norma(pa_num *pa)
 		}
 	}
 
-	return (i == pa->g_max + 1) ? 0 : pow(P, -res);
+	if (res == 0) {
+		if (pa->g_max == 0)
+			return 0;
+		else
+			return 1;
+	}
+
+	return pow(P, -res);
 }
 
 int indicator(pa_num *x, pa_num *n, int gamma)
@@ -254,6 +274,11 @@ pa_num* get_fractional_part(pa_num *pa)
 {
 	pa_num *ret;
 	int i;
+
+	if (pa->g_min >= 0) {
+		ret = init_pa_num(0, 0);
+		return ret;
+	}
 
 	ret = init_pa_num(pa->g_min, -1);
 
@@ -318,7 +343,8 @@ pa_num* mult(pa_num *pa1, pa_num *pa2)
 	pa_num *ret;
 
 	ret = init_pa_num(pa1->g_min + pa2->g_min, pa1->g_max + pa2->g_max);
-	printf("Not implemented yet\n");
+	fprintf(stderr, "Not implemented yet\n");
+	fflush(stderr);
 
 	return 0;
 }
@@ -349,20 +375,36 @@ float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
 complex wavelet_integral(pa_num *n, int gamma, int j, int g_min, int g_max)
 {
 	complex ret;
-	float img = 0.f, rez = 0.f, tmp1, tmp2;
+	float img = 0.f, rez = 0.f, tmp1, tmp2, tmp11, tmp22, del;
 	int fs_sz, i, gmin;
 	pa_num **fs;
-	pa_num *pa;
+	pa_num *pa, *zero;
 
 	/* for integration on the "level - 1" */
 	gmin = gamma - 1;
 	fs_sz = (size_t)fspace_sz(gmin, g_max);
 	fs = gen_factor_space(gmin, g_max);
 
+	/* workaround for special point (f.i. x = 0) */
 	for (i = 0; i < fs_sz; i++) {
+		print_pa_num(fs[i]);
 		pa = p_gamma_pa_num(fs[i], -gmin);
-		tmp1 = crealf(wavelet(pa, n, gamma, j));
-		tmp2 = cimagf(wavelet(pa, n, gamma, j));
+		if (from_canonic_to_float(pa) == 0.f) {
+			zero = init_pa_num(-gmin + 1, -gmin + 1);
+			set_x_by_gamma(zero, -gmin + 1, 1);
+			fprintf(stderr, "Warning! x = %f is special point! ", \
+						from_canonic_to_float(pa));
+			fprintf(stderr, "Let's take x = %f, for gamma = %d\n", \
+					from_canonic_to_float(zero), gamma);
+			//fflush(stderr);
+			pa = zero;
+		}
+		del = p_norma(pa) * p_norma(pa);
+		tmp11 = crealf(wavelet(pa, n, gamma, j));
+		tmp22 = cimagf(wavelet(pa, n, gamma, j));
+		printf("iter %d -- real = %f -- img = %f\n\n", i, tmp11, tmp22);
+		tmp1 = crealf(wavelet(pa, n, gamma, j)) / del;
+		tmp2 = cimagf(wavelet(pa, n, gamma, j)) / del;
 		printf("iter %d -- wv = %f + i * %f\n\n", i, tmp1, tmp2);
 		rez += tmp1;
 		img += tmp2;

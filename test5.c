@@ -19,9 +19,10 @@ float p_norma_wrapped(pa_num* pa) { return (float) p_norma(pa); }
 float function(pa_num* pa)
 {
 	float ret;
-	ret = wrapped_indicator(pa) * p_norma_wrapped(pa);
+	//ret = wrapped_indicator(pa) * p_norma_wrapped(pa);
 	//ret = wrapped_indicator(pa);
-	return ret;
+	ret = p_norma_wrapped(pa) * p_norma_wrapped(pa);
+	return 1 / ret;
 }
 
 int main()
@@ -35,6 +36,7 @@ int main()
 
 	printf("Test#5: Integrals\n");
 
+#if 0
 	pfunc = function;
 	gmin = -1;
 	gmax = 0;
@@ -72,12 +74,14 @@ int main()
 		res = integral(pfunc, gmin, gmax);
 		printf("gmin = %d gmax = %d result = %f\n", gmin, gmax, res);
 	}
+#endif
 
 	printf("\n>>> wavelet basis <<<\n");
-	gmin = 2;
-	gmax = 5;
+	gmin = 0;
+	gmax = 4;
 	printf("Parameters: g_max = %d, g_min = %d\n", gmax, gmin);
-	for (gamma = gmin; gamma <= gmax; gamma++) {
+	//for (gamma = gmin; gamma <= gmax; gamma++) {
+		gamma = 0;
 		printf("Current gamma: %d\n", gamma);
 		fs_sz = fspace_sz(gamma, gmax);
 		fs = gen_factor_space(gamma, gmax);
@@ -89,7 +93,7 @@ int main()
 			free_pa_num(fs[i]);
 		}
 		free(fs);
-	}
+	//}
 	return 0;
 }
 

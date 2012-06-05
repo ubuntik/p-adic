@@ -11,7 +11,7 @@
 #include <math.h>
 #include <complex.h>
 
-#define P 3
+#define P 2
 #define PI 3.14159265358979323846f
 
 enum PADIC_ERR {EINIT = 0,
@@ -52,7 +52,7 @@ pa_num* p_gamma_pa_num(pa_num *pa, int gamma);
 
 void print_pa_num(pa_num *pa);
 
-int p_norma(pa_num *pa);
+float p_norma(pa_num *pa);
 
 int indicator(pa_num *x, pa_num *n, int gamma);
 
