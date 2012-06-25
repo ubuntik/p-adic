@@ -216,7 +216,7 @@ void print_pa_num(pa_num *pa)
 
 float p_norma(pa_num *pa)
 {
-	int i, res;
+	int i, res = INT_MAX;
 
 	for (i = pa->g_min; i <= pa->g_max; i++) {
 		if (get_x_by_gamma(pa, i) == 0) {
@@ -227,12 +227,9 @@ float p_norma(pa_num *pa)
 		}
 	}
 
-	if (res == 0) {
-		if (pa->g_max == 0)
-			return 0;
-		else
-			return 1;
-	}
+	/* it means, we check all coeffs in an array and all of them are null*/
+	if (res == INT_MAX)
+		return 0;
 
 	return pow(P, -res);
 }
@@ -372,42 +369,58 @@ float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
 	return ret * (float)pow(P, g_min);
 }
 
-complex wavelet_integral(pa_num *n, int gamma, int j, int g_min, int g_max)
+complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
+						int j, int g_min, int g_max)
 {
 	complex ret;
-	float img = 0.f, rez = 0.f, tmp1, tmp2, tmp11, tmp22, del;
-	int fs_sz, i, gmin;
+	float img = 0.f, rez = 0.f, fun, wav1, wav2, res1, res2, fpa;
+	int fs_sz, i;
 	pa_num **fs;
-	pa_num *pa, *zero;
+	pa_num *pa, *spoint;
+	float (*pfunc)(pa_num *pnum);
 
+	pfunc = func;
 	/* for integration on the "level - 1" */
-	gmin = gamma - 1;
-	fs_sz = (size_t)fspace_sz(gmin, g_max);
-	fs = gen_factor_space(gmin, g_max);
+	fs_sz = (size_t)fspace_sz(g_min, g_max);
+	fs = gen_factor_space(g_min, g_max);
 
-	/* workaround for special point (f.i. x = 0) */
 	for (i = 0; i < fs_sz; i++) {
-		print_pa_num(fs[i]);
-		pa = p_gamma_pa_num(fs[i], -gmin);
-		if (from_canonic_to_float(pa) == 0.f) {
-			zero = init_pa_num(-gmin + 1, -gmin + 1);
-			set_x_by_gamma(zero, -gmin + 1, 1);
-			fprintf(stderr, "Warning! x = %f is special point! ", \
-						from_canonic_to_float(pa));
-			fprintf(stderr, "Let's take x = %f, for gamma = %d\n", \
-					from_canonic_to_float(zero), gamma);
-			//fflush(stderr);
-			pa = zero;
+		pa = p_gamma_pa_num(fs[i], -g_min);
+		print_pa_num(pa);
+		printf("%f is represetatives!\n\n", from_canonic_to_float(pa));
+		/* workaround for special point (f.i. x = 0) */
+		//if ( ! isfinite(pfunc(pa)) ) {
+		if ( pfunc(pa) == INFINITY ) {
+			printf("Warning!!! Special point has found!\n");
+			print_pa_num(pa);
+			printf("%f is special point!\n", from_canonic_to_float(pa));
+			spoint = __extend_number(pa, pa->g_min, pa->g_max + 1);
+			set_x_by_gamma(spoint, pa->g_max + 1, 1);
+			printf("Take x = %f\n", from_canonic_to_float(spoint));
+			print_pa_num(spoint);
+
+			printf("Check wavelet\n");
+			wav1 = crealf(wavelet(pa, n, gamma, j));
+			wav2 = cimagf(wavelet(pa, n, gamma, j));
+			printf("wav from pa: %f -- %f\n", wav1, wav2);
+
+			wav1 = crealf(wavelet(spoint, n, gamma, j));
+			wav2 = cimagf(wavelet(spoint, n, gamma, j));
+			printf("wav from pa: %f -- %f\n", wav1, wav2);
+
+			pa = spoint;
 		}
-		del = p_norma(pa) * p_norma(pa);
-		tmp11 = crealf(wavelet(pa, n, gamma, j));
-		tmp22 = cimagf(wavelet(pa, n, gamma, j));
-		printf("iter %d -- real = %f -- img = %f\n\n", i, tmp11, tmp22);
-		tmp1 = crealf(wavelet(pa, n, gamma, j)) / del;
-		tmp2 = cimagf(wavelet(pa, n, gamma, j)) / del;
-		printf("iter %d -- wv = %f + i * %f\n\n", i, tmp1, tmp2);
-		rez += tmp1;
-		img += tmp2;
+		fun = pfunc(pa);
+		fpa = from_canonic_to_float(pa);
+		printf("func(%f) = %f\n", fpa, fun);
+		wav1 = crealf(wavelet(pa, n, gamma, j));
+		wav2 = cimagf(wavelet(pa, n, gamma, j));
+		printf("pa = %f -- wav1 = %f -- wav2 = %f\n\n", fpa, wav1, wav2);
+		res1 = crealf(wavelet(pa, n, gamma, j)) * fun;
+		res2 = cimagf(wavelet(pa, n, gamma, j)) * fun;
+		printf("pa %f -- res = %f + i * %f\n\n", fpa, res1, res2);
+		rez += res1;
+		img += res2;
 		free_pa_num(pa);
 		free_pa_num(fs[i]);
 	}

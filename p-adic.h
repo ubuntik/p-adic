@@ -8,6 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <limits.h>
 #include <math.h>
 #include <complex.h>
 
@@ -68,7 +69,7 @@ pa_num* smult(pa_num *pa1, int j);
 
 float integral(float (*func)(pa_num* pnum), int g_min, int g_max);
 
-complex wavelet_integral(pa_num *n, int gamma, int j, int g_min, int g_max);
+complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, int j, int g_min, int g_max);
 
 /* Not implemented yet */
 pa_num* mult(pa_num *pa1, pa_num *pa2);

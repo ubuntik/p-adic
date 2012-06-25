@@ -30,13 +30,10 @@ int main()
 	float res;
 	float res1, res2, res3;
 	float (*pfunc)(pa_num* pnum);
-	int i, gmax, gmin, gamma, fs_sz;
-	pa_num **fs;
-	complex ret;
+	int gmax, gmin;
 
 	printf("Test#5: Integrals\n");
 
-#if 0
 	pfunc = function;
 	gmin = -1;
 	gmax = 0;
@@ -74,26 +71,7 @@ int main()
 		res = integral(pfunc, gmin, gmax);
 		printf("gmin = %d gmax = %d result = %f\n", gmin, gmax, res);
 	}
-#endif
 
-	printf("\n>>> wavelet basis <<<\n");
-	gmin = 0;
-	gmax = 4;
-	printf("Parameters: g_max = %d, g_min = %d\n", gmax, gmin);
-	//for (gamma = gmin; gamma <= gmax; gamma++) {
-		gamma = 0;
-		printf("Current gamma: %d\n", gamma);
-		fs_sz = fspace_sz(gamma, gmax);
-		fs = gen_factor_space(gamma, gmax);
-		printf("The power of factor space: %d\n", fs_sz);
-		for (i = 0; i < fs_sz; i++) {
-			//ret = wavelet_integral(fs[i], gamma, 1, gamma - 1, gmax);
-			ret = wavelet_integral(fs[i], gamma, 1, gmin, gmax);
-			printf(">>> Result: %f + i * %f\n\n", crealf(ret), cimagf(ret));
-			free_pa_num(fs[i]);
-		}
-		free(fs);
-	//}
 	return 0;
 }
 
