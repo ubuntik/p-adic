@@ -19,8 +19,13 @@ float p_norma_wrapped(pa_num* pa) { return (float) p_norma(pa); }
 float function(pa_num* pa)
 {
 	float ret;
-	//ret = wrapped_indicator(pa) * p_norma_wrapped(pa);
-	//ret = wrapped_indicator(pa);
+	ret = wrapped_indicator(pa) * p_norma_wrapped(pa);
+	return ret;
+}
+
+float sp_point(pa_num* pa)
+{
+	float ret;
 	ret = p_norma_wrapped(pa) * p_norma_wrapped(pa);
 	return 1 / ret;
 }
@@ -71,6 +76,15 @@ int main()
 		res = integral(pfunc, gmin, gmax);
 		printf("gmin = %d gmax = %d result = %f\n", gmin, gmax, res);
 	}
+
+	printf("\n>>> integral with special point <<<\n");
+	pfunc = sp_point;
+
+	gmin = -4;
+	gmax = 0;
+	res1 = integral(pfunc, gmin, gmax);
+
+	printf("Zp: %f\n", res1);
 
 	return 0;
 }

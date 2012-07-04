@@ -11,9 +11,21 @@
 #include <limits.h>
 #include <math.h>
 #include <complex.h>
+#include <stdint.h>
 
 #define P 2
 #define PI 3.14159265358979323846f
+
+//Workaround:
+#ifndef NAN
+#define NAN (0.0/0.0)
+#endif
+
+//Workaround:
+#ifndef INFINITY
+#define INFINITY (1.0/0.0)
+#endif
+
 
 enum PADIC_ERR {EINIT = 0,
 		EGOUT = 1

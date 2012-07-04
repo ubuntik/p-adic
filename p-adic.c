@@ -323,6 +323,9 @@ pa_num* smult(pa_num *pa, int j)
 	pa_num *ret;
 	int i, tmp, in_mind = 0;
 
+	if (j == 0)
+		return init_pa_num(pa->g_min, pa->g_max);
+
 	ret = init_pa_num(pa->g_min, pa->g_max + 1);
 
 	for (i = ret->g_min; i <= ret->g_max; i++) {
@@ -351,7 +354,7 @@ float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
 	float ret;
 	int fs_sz, i;
 	pa_num **fs;
-	pa_num *pa;
+	pa_num *pa, *spoint = NULL;
 	float (*pfunc)(pa_num *pnum);
 
 	fs_sz = (size_t)fspace_sz(g_min, g_max);
@@ -361,9 +364,22 @@ float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
 	ret = 0;
 	for (i = 0; i < fs_sz; i++) {
 		pa = p_gamma_pa_num(fs[i], -g_min);
+		if ( pfunc(pa) == INFINITY ) {
+			printf("Warning!!! Special point has found!\n");
+			print_pa_num(pa);
+			printf("%f is special point!\n", from_canonic_to_float(pa));
+			spoint = __extend_number(pa, pa->g_min, pa->g_max + 1);
+			set_x_by_gamma(spoint, pa->g_max + 1, 1);
+			//spoint = init_pa_num(pa->g_min, pa->g_max);
+			//set_x_by_gamma(spoint, pa->g_min + 1, 1);
+			printf("Take x = %f\n", from_canonic_to_float(spoint));
+			print_pa_num(spoint);
+			free_pa_num(pa);
+			pa = spoint;
+		}
 		ret += (float)pfunc(pa);
-		free_pa_num(pa);
 		free_pa_num(fs[i]);
+		free_pa_num(pa);
 	}
 	free(fs);
 	return ret * (float)pow(P, g_min);
@@ -408,6 +424,7 @@ complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
 			wav2 = cimagf(wavelet(spoint, n, gamma, j));
 			printf("wav from pa: %f -- %f\n", wav1, wav2);
 
+			free_pa_num(pa);
 			pa = spoint;
 		}
 		fun = pfunc(pa);

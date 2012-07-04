@@ -47,5 +47,5 @@ p-adic.o: p-adic.h p-adic.c
 	$(CXX) $(CFLAGS) -c p-adic.c -o p-adic.o
 
 clean:
-	rm *.o test1 test2 test3 test4 test5 test6
+	@rm -rf *.o test1 test2 test3 test4 test5 test6 2&>/dev/null
 
