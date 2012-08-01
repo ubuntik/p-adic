@@ -1,4 +1,4 @@
-#include "p-adic.h"
+#include "../src/p-adic.h"
 
 float p_norma_wrapped(pa_num* pa) { return (float) p_norma(pa); }
 

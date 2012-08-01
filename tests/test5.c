@@ -1,4 +1,4 @@
-#include "p-adic.h"
+#include "../src/p-adic.h"
 
 float wrapped_indicator(pa_num *pa)
 {

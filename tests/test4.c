@@ -1,4 +1,4 @@
-#include "p-adic.h"
+#include "../src/p-adic.h"
 #define G_MAX 1
 #define G_MIN (-2)
 
