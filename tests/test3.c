@@ -5,7 +5,7 @@
 
 int main()
 {
-	pa_num *pn1, *pn2, *res;
+	pa_num *pn1, *pn2, *res, *psub, *padd;
 	int i;
 
 	printf("Test#3\n\n");
@@ -27,21 +27,82 @@ int main()
 	print_pa_num(pn2);
 	printf("pa2 = %g\n\n", from_canonic_to_float(pn2));
 
-	res = sub(pn1, pn2);
+	printf("Check their subtraction and addition:\n");
 
-	printf("Check their subtraction:\n");
+	psub = sub(pn1, pn2);
 	printf("pa1 - pa2 = {");
-	print_pa_num(res);
-	printf("pa1 - pa2 = %g\n\n", from_canonic_to_float(res));
-	free_pa_num(res);
+	print_pa_num(psub);
+	printf("pa1 - pa2 = %g\n\n", from_canonic_to_float(psub));
+	free_pa_num(psub);
 
-	res = sub(pn2, pn1);
+	padd = add(pn1, pn2);
+	printf("pa1 + pa2 = {");
+	print_pa_num(padd);
+	printf("pa1 + pa2 = %g\n\n", from_canonic_to_float(padd));
+	free_pa_num(padd);
+
+	psub = sub(pn2, pn1);
 	printf("pa2 - pa1 = {");
-	print_pa_num(res);
-	printf("pa2 - pa1 = %g\n\n", from_canonic_to_float(res));
+	print_pa_num(psub);
+	printf("pa2 - pa1 = %g\n\n", from_canonic_to_float(psub));
+	free_pa_num(psub);
 
-	free_pa_num(res);
+	free_pa_num(pn1);
 	free_pa_num(pn2);
+
+	pn1 = init_pa_num(-2,-1);
+	pn1->x[0] = 2;
+	pn1->x[1] = 1;
+	pn1->sign = NEG;
+
+	printf("Take first p-adic number (negative):\n");
+	print_pa_num(pn1);
+	printf("pa1 = %g\n\n", from_canonic_to_float(pn1));
+
+	pn2 = init_pa_num(-2, -1);
+	pn2->x[0] = 1;
+	pn2->x[1] = 2;
+
+	printf("Take second p-adic number:\n");
+	print_pa_num(pn2);
+	printf("pa2 = %g\n\n", from_canonic_to_float(pn2));
+
+	printf("Check their subtraction and addition:\n");
+
+	psub = sub(pn1, pn2);
+	printf("pa1 - pa2 = {");
+	print_pa_num(psub);
+	printf("pa1 - pa2 = %g\n\n", from_canonic_to_float(psub));
+	free_pa_num(psub);
+
+	padd = add(pn1, pn2);
+	printf("pa1 + pa2 = {");
+	print_pa_num(padd);
+	printf("pa1 - pa2 = %g\n\n", from_canonic_to_float(padd));
+	free_pa_num(padd);
+
+	psub = sub(pn2, pn1);
+	printf("pa2 - pa1 = {");
+	print_pa_num(psub);
+	printf("pa2 - pa1 = %g\n\n", from_canonic_to_float(psub));
+	free_pa_num(psub);
+
+	padd = add(pn2, pn1);
+	printf("pa2 + pa1 = {");
+	print_pa_num(padd);
+	printf("pa2 + pa1 = %g\n\n", from_canonic_to_float(padd));
+	free_pa_num(padd);
+
+	free_pa_num(pn1);
+	free_pa_num(pn2);
+
+	pn1 = init_pa_num(-2,-1);
+	pn1->x[0] = 2;
+	pn1->x[1] = 1;
+
+	printf("Take the p-adic number:\n");
+	print_pa_num(pn1);
+	printf("pa1 = %g\n\n", from_canonic_to_float(pn1));
 
 	printf("Check multiplication of p-adic number and p^gamma:\n");
 	printf("pa1 * p^2 = {");
