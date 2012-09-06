@@ -1,11 +1,11 @@
 #include "../src/p-adic.h"
 
-float p_norma_wrapped(pa_num* pa) { return (float) p_norma(pa); }
+float p_norm_wrapped(pa_num* pa) { return (float) p_norm(pa); }
 
 float function(pa_num* pa)
 {
 	float ret;
-	ret = p_norma_wrapped(pa) * p_norma_wrapped(pa);
+	ret = p_norm_wrapped(pa) * p_norm_wrapped(pa);
 	return 1 / ret;
 }
 

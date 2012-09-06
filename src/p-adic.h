@@ -49,7 +49,7 @@ pa_num* init_pa_num(int gmin, int gmax);
 
 void free_pa_num(pa_num *pa);
 
-long fspace_sz(int g_min, int g_max);
+long qspace_sz(int g_min, int g_max);
 
 int get_x_by_gamma(pa_num* pa, int gamma);
 
@@ -57,19 +57,19 @@ int set_x_by_gamma(pa_num* pa, int gamma, int x);
 
 int arith_compare(pa_num *pa1, pa_num *pa2);
 
-int reverce_sign(int sign);
+int reverse_sign(int sign);
 
-pa_num* minus(pa_num *pa1, pa_num *pa2);
+pa_num* sub(pa_num *pa1, pa_num *pa2);
 
-pa_num* plus(pa_num *pa1, pa_num *pa2);
+pa_num* add(pa_num *pa1, pa_num *pa2);
 
-pa_num **gen_factor_space(int g_min, int g_max);
+pa_num **gen_quotient_space(int g_min, int g_max);
 
 pa_num* p_gamma_pa_num(pa_num *pa, int gamma);
 
 void print_pa_num(pa_num *pa);
 
-float p_norma(pa_num *pa);
+float p_norm(pa_num *pa);
 
 int indicator(pa_num *x, pa_num *n, int gamma);
 

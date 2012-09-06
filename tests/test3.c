@@ -27,7 +27,7 @@ int main()
 	print_pa_num(pn2);
 	printf("pa2 = %g\n\n", from_canonic_to_float(pn2));
 
-	res = minus(pn1, pn2);
+	res = sub(pn1, pn2);
 
 	printf("Check their subtraction:\n");
 	printf("pa1 - pa2 = {");
@@ -35,7 +35,7 @@ int main()
 	printf("pa1 - pa2 = %g\n\n", from_canonic_to_float(res));
 	free_pa_num(res);
 
-	res = minus(pn2, pn1);
+	res = sub(pn2, pn1);
 	printf("pa2 - pa1 = {");
 	print_pa_num(res);
 	printf("pa2 - pa1 = %g\n\n", from_canonic_to_float(res));

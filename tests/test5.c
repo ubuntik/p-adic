@@ -14,19 +14,19 @@ float wrapped_indicator(pa_num *pa)
 	return ret;
 }
 
-float p_norma_wrapped(pa_num* pa) { return (float) p_norma(pa); }
+float p_norm_wrapped(pa_num* pa) { return (float) p_norm(pa); }
 
 float function(pa_num* pa)
 {
 	float ret;
-	ret = wrapped_indicator(pa) * p_norma_wrapped(pa);
+	ret = wrapped_indicator(pa) * p_norm_wrapped(pa);
 	return ret;
 }
 
 float sp_point(pa_num* pa)
 {
 	float ret;
-	ret = p_norma_wrapped(pa) * p_norma_wrapped(pa);
+	ret = p_norm_wrapped(pa) * p_norm_wrapped(pa);
 	return 1 / ret;
 }
 
@@ -64,7 +64,7 @@ int main()
 	}
 
 	printf("\n>>> p-norma function <<<\n");
-	pfunc = p_norma_wrapped;
+	pfunc = p_norm_wrapped;
 
 	gmax = 1;
 	for (gmin = 0; gmin > -10; gmin--){

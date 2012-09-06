@@ -7,20 +7,20 @@ int main()
 {
 	pa_num** fs;
 	pa_num *pgnum;
-	int fs_sz, i, g;
+	int qs_sz, i, g;
 
 	printf("Test#2: Generate tree\n");
 	printf("p = %d; Gamma_min = %d; Gamma_max = %d\n", P, G_MIN, G_MAX);
 
 	for (g = G_MIN; g <= G_MAX; g++) {
-		fs_sz = (size_t)fspace_sz(G_MIN, g);
+		qs_sz = (size_t)qspace_sz(G_MIN, g);
 
 		printf("Gamma = %d\n", g);
-		printf("Number of balls = %d\n", fs_sz);
+		printf("Number of balls = %d\n", qs_sz);
 
-		fs = gen_factor_space(G_MIN, g);
+		fs = gen_quotient_space(G_MIN, g);
 
-		for (i = 0; i < fs_sz; i++) {
+		for (i = 0; i < qs_sz; i++) {
 			pgnum = p_gamma_pa_num(fs[i], g);
 			printf("Number %d:\n", i);
 			printf("Canonical view coefficients:\n");

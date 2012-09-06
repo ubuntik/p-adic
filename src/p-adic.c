@@ -2,7 +2,7 @@
 
 // len = g_max - g_min + 1
 
-long fspace_sz(int g_min, int g_max)
+long qspace_sz(int g_min, int g_max)
 {
 	long ret = 1;
 	int i;
@@ -114,7 +114,7 @@ int arith_compare(pa_num *pa1, pa_num *pa2)
 	return 0;
 }
 
-int reverce_sign(int sign)
+int reverse_sign(int sign)
 {
 	return (sign == POS) ? NEG : POS;
 }
@@ -188,7 +188,7 @@ pa_num* __do_compact(pa_num *pa)
 	return shrt;
 }
 
-pa_num* plus(pa_num *pa1, pa_num *pa2)
+pa_num* add(pa_num *pa1, pa_num *pa2)
 {
 	pa_num *ret, *shrt, *pn1, *pn2;
 	int min, max;
@@ -198,7 +198,6 @@ pa_num* plus(pa_num *pa1, pa_num *pa2)
 	max = (pa1->g_max > pa2->g_max) ? pa1->g_max : pa2->g_max;
 	/* +1 for number's overhead */
 	ret = init_pa_num(min, max + 1);
-//	ret = init_pa_num(min, max);
 
 	cmp = arith_compare(pa1, pa2);
 
@@ -216,7 +215,7 @@ pa_num* plus(pa_num *pa1, pa_num *pa2)
 		ret->sign = pa1->sign;
 		__dummy_add(ret, pn1, pn2);
 	} else {
-		ret->sign = (revert) ? reverce_sign(pa1->sign) : pa1->sign;
+		ret->sign = (revert) ? reverse_sign(pa1->sign) : pa1->sign;
 		__dummy_sub(ret, pn1, pn2);
 	}
 
@@ -230,7 +229,7 @@ pa_num* plus(pa_num *pa1, pa_num *pa2)
 	return shrt;
 }
 
-pa_num* minus(pa_num *pa1, pa_num *pa2)
+pa_num* sub(pa_num *pa1, pa_num *pa2)
 {
 	pa_num *ret, *shrt, *pn1, *pn2;
 	int min, max;
@@ -240,7 +239,6 @@ pa_num* minus(pa_num *pa1, pa_num *pa2)
 	max = (pa1->g_max > pa2->g_max) ? pa1->g_max : pa2->g_max;
 	/* +1 for number's overhead */
 	ret = init_pa_num(min, max + 1);
-//	ret = init_pa_num(min, max);
 
 	cmp = arith_compare(pa1, pa2);
 
@@ -259,7 +257,7 @@ pa_num* minus(pa_num *pa1, pa_num *pa2)
 	}
 
 	if (pa1->sign == pa2->sign) {
-		ret->sign = (revert) ? reverce_sign(pa1->sign) : pa1->sign;
+		ret->sign = (revert) ? reverse_sign(pa1->sign) : pa1->sign;
 		__dummy_sub(ret, pn1, pn2);
 	} else {
 		ret->sign = pa1->sign;
@@ -276,24 +274,24 @@ pa_num* minus(pa_num *pa1, pa_num *pa2)
 	return shrt;
 }
 
-pa_num** gen_factor_space(int g_min, int g_max)
+pa_num** gen_quotient_space(int g_min, int g_max)
 {
-	size_t fs_sz;
+	size_t qs_sz;
 	pa_num **ret;
 	int div, n, i, j, k, l, ngrp;
 	int min = g_min - g_max - 1;
 
-	fs_sz = (size_t)fspace_sz(g_min, g_max);
-	ret = (pa_num **)malloc(fs_sz * sizeof(pa_num*));
+	qs_sz = (size_t)qspace_sz(g_min, g_max);
+	ret = (pa_num **)malloc(qs_sz * sizeof(pa_num*));
 
-	for (i = 0; i < fs_sz; i++) {
+	for (i = 0; i < qs_sz; i++) {
 		ret[i] = init_pa_num(min, -1);
 	}
 
 	div = 1;
 	for (k = -1; k >= min; k--) {
 		n = 0;
-		ngrp = fs_sz / (div * P) ;
+		ngrp = qs_sz / (div * P) ;
 		for (j = 0; j < ngrp; j++) {
 			for (i = 0; i < P; i++) {
 				for (l = 0; l < div; l++) {
@@ -333,7 +331,7 @@ void print_pa_num(pa_num *pa)
 	fflush(stdout);
 }
 
-float p_norma(pa_num *pa)
+float p_norm(pa_num *pa)
 {
 	int i, res = INT_MAX;
 
@@ -359,8 +357,8 @@ int indicator(pa_num *x, pa_num *n, int gamma)
 	int norma;
 
 	mult = p_gamma_pa_num(x, gamma);
-	subtr = minus(mult, n);
-	norma = p_norma(subtr);
+	subtr = sub(mult, n);
+	norma = p_norm(subtr);
 
 	/* |p^gamma*x - n| <= 1 => indicator = 1
 	 * |kern| <= 1 => gamma >= 0
@@ -427,7 +425,7 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 	complex ret;
 
 	mult = p_gamma_pa_num(x, gamma);
-	subtr = minus(mult, n);
+	subtr = sub(mult, n);
 	kern = p_gamma_pa_num(subtr, -1);
 	jkern = smult(kern, j);
 	ret = character(jkern) * indicator(x, n, gamma);
@@ -474,17 +472,17 @@ pa_num* mult(pa_num *pa1, pa_num *pa2)
 float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
 {
 	float ret;
-	int fs_sz, i;
+	int qs_sz, i;
 	pa_num **fs;
 	pa_num *pa, *spoint = NULL;
 	float (*pfunc)(pa_num *pnum);
 
-	fs_sz = (size_t)fspace_sz(g_min, g_max);
-	fs = gen_factor_space(g_min, g_max);
+	qs_sz = (size_t)qspace_sz(g_min, g_max);
+	fs = gen_quotient_space(g_min, g_max);
 	pfunc = func;
 
 	ret = 0;
-	for (i = 0; i < fs_sz; i++) {
+	for (i = 0; i < qs_sz; i++) {
 		pa = p_gamma_pa_num(fs[i], -g_min);
 		if ( pfunc(pa) == INFINITY ) {
 			printf("Warning!!! Special point has found!\n");
@@ -512,17 +510,17 @@ complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
 {
 	complex ret;
 	float img = 0.f, rez = 0.f, fun, wav1, wav2, res1, res2, fpa;
-	int fs_sz, i;
+	int qs_sz, i;
 	pa_num **fs;
 	pa_num *pa, *spoint;
 	float (*pfunc)(pa_num *pnum);
 
 	pfunc = func;
 	/* for integration on the "level - 1" */
-	fs_sz = (size_t)fspace_sz(g_min, g_max);
-	fs = gen_factor_space(g_min, g_max);
+	qs_sz = (size_t)qspace_sz(g_min, g_max);
+	fs = gen_quotient_space(g_min, g_max);
 
-	for (i = 0; i < fs_sz; i++) {
+	for (i = 0; i < qs_sz; i++) {
 		pa = p_gamma_pa_num(fs[i], -g_min);
 		print_pa_num(pa);
 		printf("%f is represetatives!\n\n", from_canonic_to_float(pa));
@@ -568,17 +566,4 @@ complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
 	return ret;
 
 }
-
-#if 0
-pa_num* get_invert(pa_num *pa)
-{
-	pa_num *ret, *nil;
-
-	nil = init_pa_num(0, 0);
-	ret = minus(nil, pa);
-	print_pa_num(ret);
-
-	return ret;
-}
-#endif
 
