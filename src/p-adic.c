@@ -45,7 +45,8 @@ int get_x_by_gamma(pa_num* pa, int gamma)
 	if (gamma < pa->g_min)
 		return 0;
 	else if (gamma > pa->g_max)
-		return (pa->sign) ? (P - 1) : 0;
+//		return (pa->sign) ? (P - 1) : 0;
+		return 0;
 	return pa->x[gamma - pa->g_min];
 }
 
@@ -95,25 +96,39 @@ pa_num* __extend_number(pa_num *pa, int g_min, int g_max)
 	return ret;
 }
 
-pa_num* minus(pa_num *pa1, pa_num *pa2)
+int arith_compare(pa_num *pa1, pa_num *pa2)
 {
-	pa_num *ret, *shrt, *pn1, *pn2;
-	int min, max;
-	int coeff, i, skip;
-	int in_mind = 0;
+	int max, min, i;
 
 	min = (pa1->g_min < pa2->g_min) ? pa1->g_min : pa2->g_min;
 	max = (pa1->g_max > pa2->g_max) ? pa1->g_max : pa2->g_max;
-	/* +1 for number's sign */
-	ret = init_pa_num(min, max + 1);
 
-	pn1 = __extend_number(pa1, ret->g_min, ret->g_max);
-	pn2 = __extend_number(pa2, ret->g_min, ret->g_max);
+	for (i = max; i >= min; i--) {
+		if (get_x_by_gamma(pa1, i) > get_x_by_gamma(pa2, i))
+			return 1;
+		else if (get_x_by_gamma(pa1, i) < get_x_by_gamma(pa2, i))
+			return -1;
+		else
+			continue;
+	}
+	return 0;
+}
 
-	in_mind = 0;
+int reverce_sign(int sign)
+{
+	return (sign == POS) ? NEG : POS;
+}
+
+void __dummy_sub(pa_num *ret, pa_num *pn1, pa_num *pn2)
+{
+	int in_mind = 0;
+	int coeff, i;
+
 	for (i = ret->g_min; i <= ret->g_max; i++) {
-		(in_mind) ? (coeff = get_x_by_gamma(pn1, i) - get_x_by_gamma(pn2, i) - 1) : \
-			(coeff = get_x_by_gamma(pn1, i) - get_x_by_gamma(pn2, i));
+		(in_mind) ? (coeff = get_x_by_gamma(pn1, i) - \
+				get_x_by_gamma(pn2, i) - 1) : \
+			(coeff = get_x_by_gamma(pn1, i) - \
+				get_x_by_gamma(pn2, i));
 		if (coeff >= 0) {
 			set_x_by_gamma(ret, i, coeff);
 			in_mind = 0;
@@ -122,40 +137,142 @@ pa_num* minus(pa_num *pa1, pa_num *pa2)
 			in_mind = 1;
 		}
 	}
+}
 
-	if (get_x_by_gamma(ret, ret->g_max) == (P - 1)) {
-		ret->sign = NEG;
-	}
+void __dummy_add(pa_num *ret, pa_num *pn1, pa_num *pn2)
+{
+	int in_mind = 0;
+	int coeff, i;
 
 	for (i = ret->g_min; i <= ret->g_max; i++) {
-		if (get_x_by_gamma(ret, i) != 0)
+		(in_mind) ? (coeff = get_x_by_gamma(pn1, i) + \
+				get_x_by_gamma(pn2, i) + 1) : \
+			(coeff = get_x_by_gamma(pn1, i) + \
+				get_x_by_gamma(pn2, i));
+		if (coeff < P) {
+			set_x_by_gamma(ret, i, coeff);
+			in_mind = 0;
+		} else {
+			set_x_by_gamma(ret, i, coeff - P);
+			in_mind = 1;
+		}
+	}
+}
+
+pa_num* __do_compact(pa_num *pa)
+{
+	int i, min, max;
+	pa_num *shrt;
+
+	for (i = pa->g_min; i <= pa->g_max; i++) {
+		if (get_x_by_gamma(pa, i) != 0)
 			break;
 	}
 	min = i;
 
-	if (min >= ret->g_max) {
+	/* it means that pa is null */
+	if (min >= pa->g_max)
+		return shrt = init_pa_num(0, 0);
+
+	for (i = pa->g_max; i >= pa->g_min; i--) {
+		if (get_x_by_gamma(pa, i) != 0)
+			break;
+	}
+	max = i;
+
+	shrt = init_pa_num(min, max);
+	shrt->sign = pa->sign;
+	memcpy((void *)shrt->x, (void *)&(pa->x[min - pa->g_min]), \
+		(max - min + 1) * sizeof(int));
+
+	return shrt;
+}
+
+pa_num* plus(pa_num *pa1, pa_num *pa2)
+{
+	pa_num *ret, *shrt, *pn1, *pn2;
+	int min, max;
+	int cmp, revert;
+
+	min = (pa1->g_min < pa2->g_min) ? pa1->g_min : pa2->g_min;
+	max = (pa1->g_max > pa2->g_max) ? pa1->g_max : pa2->g_max;
+	/* +1 for number's overhead */
+	ret = init_pa_num(min, max + 1);
+//	ret = init_pa_num(min, max);
+
+	cmp = arith_compare(pa1, pa2);
+
+	if (cmp > 0) {
+		pn1 = __extend_number(pa1, ret->g_min, ret->g_max);
+		pn2 = __extend_number(pa2, ret->g_min, ret->g_max);
+		revert = 0;
+	} else if (cmp < 0) {
+		pn2 = __extend_number(pa1, ret->g_min, ret->g_max);
+		pn1 = __extend_number(pa2, ret->g_min, ret->g_max);
+		revert = 1;
+	}
+
+	if (pa1->sign == pa2->sign) {
+		ret->sign = pa1->sign;
+		__dummy_add(ret, pn1, pn2);
+	} else {
+		ret->sign = (revert) ? reverce_sign(pa1->sign) : pa1->sign;
+		__dummy_sub(ret, pn1, pn2);
+	}
+
+	free_pa_num(pn1);
+	free_pa_num(pn2);
+
+	shrt = __do_compact(ret);
+
+	free_pa_num(ret);
+
+	return shrt;
+}
+
+pa_num* minus(pa_num *pa1, pa_num *pa2)
+{
+	pa_num *ret, *shrt, *pn1, *pn2;
+	int min, max;
+	int cmp, revert;
+
+	min = (pa1->g_min < pa2->g_min) ? pa1->g_min : pa2->g_min;
+	max = (pa1->g_max > pa2->g_max) ? pa1->g_max : pa2->g_max;
+	/* +1 for number's overhead */
+	ret = init_pa_num(min, max + 1);
+//	ret = init_pa_num(min, max);
+
+	cmp = arith_compare(pa1, pa2);
+
+	if (cmp > 0) {
+		pn1 = __extend_number(pa1, ret->g_min, ret->g_max);
+		pn2 = __extend_number(pa2, ret->g_min, ret->g_max);
+		revert = 0;
+	} else if (cmp < 0) {
+		pn2 = __extend_number(pa1, ret->g_min, ret->g_max);
+		pn1 = __extend_number(pa2, ret->g_min, ret->g_max);
+		revert = 1;
+	} else {
 		free_pa_num(ret);
-		free_pa_num(pn1);
-		free_pa_num(pn2);
+
 		return shrt = init_pa_num(0, 0);
 	}
 
-	skip = (ret->sign == POS) ? 0 : (P - 1);
-
-	for (i = ret->g_max; i >= ret->g_min; i--) {
-		if (get_x_by_gamma(ret, i) != skip)
-			break;
+	if (pa1->sign == pa2->sign) {
+		ret->sign = (revert) ? reverce_sign(pa1->sign) : pa1->sign;
+		__dummy_sub(ret, pn1, pn2);
+	} else {
+		ret->sign = pa1->sign;
+		__dummy_add(ret, pn1, pn2);
 	}
-	max = (skip) ? i + 1 : i;
 
-	shrt = init_pa_num(min, max);
-	shrt->sign = ret->sign;
-	memcpy((void *)shrt->x, (void *)&(ret->x[min - ret->g_min]), \
-		(max - min + 1) * sizeof(int));
-
-	free_pa_num(ret);
 	free_pa_num(pn1);
 	free_pa_num(pn2);
+
+	shrt = __do_compact(ret);
+
+	free_pa_num(ret);
+
 	return shrt;
 }
 
@@ -207,6 +324,8 @@ pa_num* p_gamma_pa_num(pa_num *pa, int gamma)
 void print_pa_num(pa_num *pa)
 {
 	int i;
+	if (pa->sign == NEG)
+		fprintf(stdout, "Negative number:\t");
 	for (i = pa->g_min; i <= pa->g_max; i++) {
 		fprintf(stdout, "x[%d] = %d\t", i, get_x_by_gamma(pa, i));
 	}
@@ -263,6 +382,9 @@ float from_canonic_to_float(pa_num *pa)
 		ret += (float)get_x_by_gamma(pa, i) * ppow;
 		ppow = ppow * P;
 	}
+
+	if (pa->sign == NEG)
+		return -ret;
 
 	return ret;
 }

@@ -13,7 +13,7 @@
 #include <complex.h>
 #include <stdint.h>
 
-#define P 2
+#define P 3
 #define PI 3.14159265358979323846f
 
 //Workaround:
@@ -55,9 +55,13 @@ int get_x_by_gamma(pa_num* pa, int gamma);
 
 int set_x_by_gamma(pa_num* pa, int gamma, int x);
 
-pa_num* __extend_number(pa_num *pa, int g_min, int g_max);
+int arith_compare(pa_num *pa1, pa_num *pa2);
+
+int reverce_sign(int sign);
 
 pa_num* minus(pa_num *pa1, pa_num *pa2);
+
+pa_num* plus(pa_num *pa1, pa_num *pa2);
 
 pa_num **gen_factor_space(int g_min, int g_max);
 

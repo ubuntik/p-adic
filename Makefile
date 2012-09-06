@@ -2,9 +2,6 @@ MKDIR_P = mkdir -p
 CC = gcc
 CFLAGS = -g -Wall -std=c99
 LIBS = -lm
-OBJS = p-adic.o
-SRCS = p-adic.c test1.c test2.c test3.c
-HDRS = p-adic.h
 OBJ_DIR = ./obj
 BIN_DIR = ./bin
 SRC_DIR = ./src

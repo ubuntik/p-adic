@@ -92,9 +92,9 @@ int main()
 	for (i = 0; i < 5; i++) {
 		printf("gamma = %d, indicator = %d\n", i, indicator(pn1, pn2, i));
 	}
-
 	free_pa_num(pn1);
 	free_pa_num(pn2);
+
 	return 0;
 
 }
