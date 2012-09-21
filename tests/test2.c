@@ -5,7 +5,7 @@
 
 int main()
 {
-	pa_num** fs;
+	pa_num** qs;
 	pa_num *pgnum;
 	int qs_sz, i, g;
 
@@ -18,10 +18,10 @@ int main()
 		printf("Gamma = %d\n", g);
 		printf("Number of balls = %d\n", qs_sz);
 
-		fs = gen_quotient_space(G_MIN, g);
+		qs = gen_quotient_space(G_MIN, g);
 
 		for (i = 0; i < qs_sz; i++) {
-			pgnum = p_gamma_pa_num(fs[i], g);
+			pgnum = p_gamma_pa_num(qs[i], g);
 			printf("Number %d:\n", i);
 			printf("Canonical view coefficients:\n");
 			print_pa_num(pgnum);
@@ -29,11 +29,11 @@ int main()
 			printf("%g\n", from_canonic_to_float(pgnum));
 			printf("===============================\n");
 			free_pa_num(pgnum);
-			free_pa_num(fs[i]);
+			free_pa_num(qs[i]);
 		}
 		printf("###############################\n");
 
-		free(fs);
+		free(qs);
 
 	}
 	return 0;

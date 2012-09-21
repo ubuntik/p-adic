@@ -81,7 +81,7 @@ complex character(pa_num *pa);
 
 complex wavelet(pa_num *x, pa_num *n, int gamma, int j);
 
-pa_num* smult(pa_num *pa1, int j);
+pa_num* jmult(pa_num *pa1, int j);
 
 float integral(float (*func)(pa_num* pnum), int g_min, int g_max);
 

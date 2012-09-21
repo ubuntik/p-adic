@@ -4,10 +4,10 @@
 
 int main()
 {
-	pa_num** fs;
+	pa_num** qs;
 	int qs_sz, i;
 
-	fs = gen_quotient_space(G_MIN, G_MAX);
+	qs = gen_quotient_space(G_MIN, G_MAX);
 	qs_sz = (size_t)qspace_sz(G_MIN, G_MAX);
 
 	printf("Test#1: Generate factor-space\n");
@@ -16,13 +16,13 @@ int main()
 	for (i = 0; i < qs_sz; i++) {
 		printf("Number %d:\n", i);
 		printf("Canonical view coefficients:\n");
-		print_pa_num(fs[i]);
-		printf("%g\n", from_canonic_to_float(fs[i]));
+		print_pa_num(qs[i]);
+		printf("%g\n", from_canonic_to_float(qs[i]));
 		printf("===============================\n");
-		free_pa_num(fs[i]);
+		free_pa_num(qs[i]);
 	}
 
-	free(fs);
+	free(qs);
 
 	return 0;
 }

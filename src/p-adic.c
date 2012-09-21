@@ -427,7 +427,7 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 	mult = p_gamma_pa_num(x, gamma);
 	subtr = sub(mult, n);
 	kern = p_gamma_pa_num(subtr, -1);
-	jkern = smult(kern, j);
+	jkern = jmult(kern, j);
 	ret = character(jkern) * indicator(x, n, gamma);
 	free_pa_num(jkern);
 	free_pa_num(kern);
@@ -438,7 +438,7 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 }
 
 /* workaround for wavelet: suppose (0 < j < P) and (pa > 0) */
-pa_num* smult(pa_num *pa, int j)
+pa_num* jmult(pa_num *pa, int j)
 {
 	pa_num *ret;
 	int i, tmp, in_mind = 0;

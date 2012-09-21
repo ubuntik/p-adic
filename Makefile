@@ -9,7 +9,6 @@ TESTS_DIR = ./tests
 
 .PHONY: directories
 all: directories test1 test2 test3 test4 test5 test6
-
 directories: ${OBJ_DIR} ${BIN_DIR} ${SRC_DIR} ${TESTS_DIR}
 
 ${OBJ_DIR}:
@@ -24,22 +23,22 @@ ${BIN_DIR}:
 %.o: ${TESTS_DIR}/%.c ${SRC_DIR}/p-adic.h
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o ${OBJ_DIR}/$@
 
-test1: test1.o p-adic.o
+test1: directories test1.o p-adic.o
 	$(CC) $(CFLAGS) ${OBJ_DIR}/test1.o ${OBJ_DIR}/p-adic.o -o ${BIN_DIR}/test1 $(LIBS)
 
-test2: test2.o p-adic.o
+test2: directories test2.o p-adic.o
 	$(CC) $(CFLAGS) ${OBJ_DIR}/test2.o ${OBJ_DIR}/p-adic.o -o ${BIN_DIR}/test2 $(LIBS)
 
-test3: test3.o p-adic.o
+test3: directories test3.o p-adic.o
 	$(CC) $(CFLAGS) ${OBJ_DIR}/test3.o ${OBJ_DIR}/p-adic.o -o ${BIN_DIR}/test3 $(LIBS)
 
-test4: test4.o p-adic.o
+test4: directories test4.o p-adic.o
 	$(CC) $(CFLAGS) ${OBJ_DIR}/test4.o ${OBJ_DIR}/p-adic.o -o ${BIN_DIR}/test4 $(LIBS)
 
-test5: test5.o p-adic.o
+test5: directories test5.o p-adic.o
 	$(CC) $(CFLAGS) ${OBJ_DIR}/test5.o ${OBJ_DIR}/p-adic.o -o ${BIN_DIR}/test5 $(LIBS)
 
-test6: test6.o p-adic.o
+test6: directories test6.o p-adic.o
 	$(CC) $(CFLAGS) ${OBJ_DIR}/test6.o ${OBJ_DIR}/p-adic.o -o ${BIN_DIR}/test6 $(LIBS)
 
 tar:

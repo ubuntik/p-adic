@@ -12,16 +12,16 @@ int main()
 	printf(">>> Checking p-adic arithmetic <<<\n\n");
 
 	pn1 = init_pa_num(-2,-1);
-	pn1->x[0] = 2;
-	pn1->x[1] = 1;
+	set_x_by_gamma(pn1, -2, 2);
+	set_x_by_gamma(pn1, -1, 1);
 
 	printf("Take first p-adic number:\n");
 	print_pa_num(pn1);
 	printf("pa1 = %g\n\n", from_canonic_to_float(pn1));
 
 	pn2 = init_pa_num(-2, -1);
-	pn2->x[0] = 1;
-	pn2->x[1] = 2;
+	set_x_by_gamma(pn2, -2, 1);
+	set_x_by_gamma(pn2, -1, 2);
 
 	printf("Take second p-adic number:\n");
 	print_pa_num(pn2);
@@ -51,8 +51,8 @@ int main()
 	free_pa_num(pn2);
 
 	pn1 = init_pa_num(-2,-1);
-	pn1->x[0] = 2;
-	pn1->x[1] = 1;
+	set_x_by_gamma(pn1, -2, 2);
+	set_x_by_gamma(pn1, -1, 1);
 	pn1->sign = NEG;
 
 	printf("Take first p-adic number (negative):\n");
@@ -60,8 +60,8 @@ int main()
 	printf("pa1 = %g\n\n", from_canonic_to_float(pn1));
 
 	pn2 = init_pa_num(-2, -1);
-	pn2->x[0] = 1;
-	pn2->x[1] = 2;
+	set_x_by_gamma(pn2, -2, 1);
+	set_x_by_gamma(pn2, -1, 2);
 
 	printf("Take second p-adic number:\n");
 	print_pa_num(pn2);
@@ -97,8 +97,8 @@ int main()
 	free_pa_num(pn2);
 
 	pn1 = init_pa_num(-2,-1);
-	pn1->x[0] = 2;
-	pn1->x[1] = 1;
+	set_x_by_gamma(pn1, -2, 2);
+	set_x_by_gamma(pn1, -1, 1);
 
 	printf("Take the p-adic number:\n");
 	print_pa_num(pn1);
@@ -116,13 +116,13 @@ int main()
 	printf(">>> Checking Indicator function <<< \n\n");
 
 	pn1 = init_pa_num(-2,-2);
-	pn1->x[0] = 1;
+	set_x_by_gamma(pn1, -2, 1);
 	printf("Take an abstract p-adic number:\n");
 	print_pa_num(pn1);
 	printf("x >> %g\n\n", from_canonic_to_float(pn1));
 
 	pn2 = init_pa_num(-3, -3);
-	pn2->x[0] = 1;
+	set_x_by_gamma(pn2, -3, 1);
 	printf("Take a representative:\n");
 	print_pa_num(pn2);
 	printf("n >> %g\n\n", from_canonic_to_float(pn2));
@@ -136,15 +136,15 @@ int main()
 	free_pa_num(pn2);
 
 	pn1 = init_pa_num(-3,-1);
-	pn1->x[0] = 2;
-	pn1->x[1] = 0;
-	pn1->x[2] = 1;
+	set_x_by_gamma(pn1, -3, 2);
+	set_x_by_gamma(pn1, -2, 0);
+	set_x_by_gamma(pn1, -1, 1);
 	printf("Take an abstract p-adic number:\n");
 	print_pa_num(pn1);
 	printf("x >> %g\n\n", from_canonic_to_float(pn1));
 
 	pn2 = init_pa_num(-1, -1);
-	pn2->x[0] = 2;
+	set_x_by_gamma(pn2, -1, 2);
 	printf("Take a representative:\n");
 	print_pa_num(pn2);
 	printf("n >> %g\n\n", from_canonic_to_float(pn2));
