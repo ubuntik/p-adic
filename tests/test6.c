@@ -1,17 +1,17 @@
 #include "../src/p-adic.h"
 
-float p_norm_wrapped(pa_num* pa) { return (float) p_norm(pa); }
+double p_norm_wrapped(pa_num* pa) { return (double) p_norm(pa); }
 
-float function(pa_num* pa)
+double function(pa_num* pa)
 {
-	float ret;
+	double ret;
 	ret = p_norm_wrapped(pa) * p_norm_wrapped(pa);
 	return 1 / ret;
 }
 
 int main()
 {
-	float (*pfunc)(pa_num* pnum);
+	double (*pfunc)(pa_num* pnum);
 	int gmax, gmin, gamma;
 	pa_num *n;
 	complex ret;

@@ -1,40 +1,38 @@
 #include "../src/p-adic.h"
 
-float wrapped_indicator(pa_num *pa)
+double wrapped_indicator(pa_num *pa)
 {
 	pa_num *n;
 	int gamma = -1;
-	float ret;
+	double ret;
 
 	n = init_pa_num(-2, -2);
 	set_x_by_gamma(n, -2, 1);
-	ret = (float)indicator(pa, n, gamma);
+	ret = (double)indicator(pa, n, gamma);
 	free_pa_num(n);
 
 	return ret;
 }
 
-float p_norm_wrapped(pa_num* pa) { return (float) p_norm(pa); }
-
-float function(pa_num* pa)
+double function(pa_num* pa)
 {
 	float ret;
-	ret = wrapped_indicator(pa) * p_norm_wrapped(pa);
+	ret = wrapped_indicator(pa) * p_norm(pa);
 	return ret;
 }
 
-float sp_point(pa_num* pa)
+double sp_point(pa_num* pa)
 {
-	float ret;
-	ret = p_norm_wrapped(pa) * p_norm_wrapped(pa);
+	double ret;
+	ret = p_norm(pa) * p_norm(pa);
 	return 1 / ret;
 }
 
 int main()
 {
-	float res;
-	float res1, res2, res3;
-	float (*pfunc)(pa_num* pnum);
+	double res;
+	double res1, res2, res3;
+	double (*pfunc)(pa_num* pnum);
 	int gmax, gmin;
 
 	printf("Test#5: Integrals\n");
@@ -63,8 +61,8 @@ int main()
 		}
 	}
 
-	printf("\n>>> p-norma function <<<\n");
-	pfunc = p_norm_wrapped;
+	printf("\n>>> p-norm function <<<\n");
+	pfunc = p_norm;
 
 	gmax = 1;
 	for (gmin = 0; gmin > -10; gmin--){

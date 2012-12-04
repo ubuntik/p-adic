@@ -16,6 +16,7 @@ long qspace_sz(int g_min, int g_max)
 pa_num* init_pa_num(int g_min, int g_max)
 {
 	pa_num *ret;
+	ret = (pa_num*)malloc(sizeof(pa_num));
 	if (g_max < g_min) {
 		fprintf(stderr, "Invalid gammas' values:\n");
 		fprintf(stderr, "g_min = %d should be ", g_min);
@@ -24,7 +25,6 @@ pa_num* init_pa_num(int g_min, int g_max)
 		ret->err = EGOUT;
 		exit(ret->err);
 	}
-	ret = (pa_num*)malloc(sizeof(pa_num));
 	ret->g_min = g_min;
 	ret->g_max = g_max;
 	ret->err = EINIT;
@@ -331,7 +331,22 @@ void print_pa_num(pa_num *pa)
 	fflush(stdout);
 }
 
-float p_norm(pa_num *pa)
+double power(double base, double exponent)
+{
+	double half_pow;
+	if (exponent == 0)
+		return (double)1;
+	else if (exponent < 0)
+		return (double)1 / power(base, -exponent);
+	else if (fmod(exponent, 2) == 0) {
+		half_pow = power(base, exponent / (double)2);
+		return half_pow * half_pow;
+	}
+	else
+		return base * power(base, exponent - 1);
+}
+
+double p_norm(pa_num *pa)
 {
 	int i, res = INT_MAX;
 
@@ -348,7 +363,7 @@ float p_norm(pa_num *pa)
 	if (res == INT_MAX)
 		return 0;
 
-	return pow(P, -res);
+	return power(P, -res);
 }
 
 int indicator(pa_num *x, pa_num *n, int gamma)
@@ -369,15 +384,15 @@ int indicator(pa_num *x, pa_num *n, int gamma)
 	return (norma > 1) ? 0 : 1;
 }
 
-float from_canonic_to_float(pa_num *pa)
+double from_canonic_to_float(pa_num *pa)
 {
 	int i;
-	float ret = 0;
-	float ppow;
+	double ret = 0;
+	double ppow;
 
-	ppow = (float)pow(P, pa->g_min);
+	ppow = power(P, pa->g_min);
 	for (i = pa->g_min; i <= pa->g_max; i++) {
-		ret += (float)get_x_by_gamma(pa, i) * ppow;
+		ret += (double)get_x_by_gamma(pa, i) * ppow;
 		ppow = ppow * P;
 	}
 
@@ -434,7 +449,7 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 	free_pa_num(mult);
 	free_pa_num(subtr);
 
-	return crealf(ret) + I * cimagf(ret);
+	return creal(ret) + I * cimag(ret);
 }
 
 /* workaround for wavelet: suppose (0 < j < P) and (pa > 0) */
@@ -458,6 +473,7 @@ pa_num* jmult(pa_num *pa, int j)
 	return ret;
 }
 
+#if 0
 pa_num* mult(pa_num *pa1, pa_num *pa2)
 {
 	pa_num *ret;
@@ -468,14 +484,15 @@ pa_num* mult(pa_num *pa1, pa_num *pa2)
 
 	return 0;
 }
+#endif
 
-float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
+double integral(double (*func)(pa_num *pnum), int g_min, int g_max)
 {
-	float ret;
+	double ret;
 	int qs_sz, i;
 	pa_num **fs;
 	pa_num *pa, *spoint = NULL;
-	float (*pfunc)(pa_num *pnum);
+	double (*pfunc)(pa_num *pnum);
 
 	qs_sz = (size_t)qspace_sz(g_min, g_max);
 	fs = gen_quotient_space(g_min, g_max);
@@ -497,23 +514,23 @@ float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
 			free_pa_num(pa);
 			pa = spoint;
 		}
-		ret += (float)pfunc(pa);
+		ret += (double)pfunc(pa);
 		free_pa_num(fs[i]);
 		free_pa_num(pa);
 	}
 	free(fs);
-	return ret * (float)pow(P, g_min);
+	return ret * (double)power(P, g_min);
 }
 
-complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
+complex wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
 						int j, int g_min, int g_max)
 {
 	complex ret;
-	float img = 0.f, rez = 0.f, fun, wav1, wav2, res1, res2, fpa;
+	double img = 0, rez = 0, fun, wav1, wav2, res1, res2, fpa;
 	int qs_sz, i;
 	pa_num **fs;
 	pa_num *pa, *spoint;
-	float (*pfunc)(pa_num *pnum);
+	double (*pfunc)(pa_num *pnum);
 
 	pfunc = func;
 	/* for integration on the "level - 1" */
@@ -536,12 +553,12 @@ complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
 			print_pa_num(spoint);
 
 			printf("Check wavelet\n");
-			wav1 = crealf(wavelet(pa, n, gamma, j));
-			wav2 = cimagf(wavelet(pa, n, gamma, j));
+			wav1 = creal(wavelet(pa, n, gamma, j));
+			wav2 = cimag(wavelet(pa, n, gamma, j));
 			printf("wav from pa: %f -- %f\n", wav1, wav2);
 
-			wav1 = crealf(wavelet(spoint, n, gamma, j));
-			wav2 = cimagf(wavelet(spoint, n, gamma, j));
+			wav1 = creal(wavelet(spoint, n, gamma, j));
+			wav2 = cimag(wavelet(spoint, n, gamma, j));
 			printf("wav from pa: %f -- %f\n", wav1, wav2);
 
 			free_pa_num(pa);
@@ -550,18 +567,18 @@ complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
 		fun = pfunc(pa);
 		fpa = from_canonic_to_float(pa);
 		printf("func(%f) = %f\n", fpa, fun);
-		wav1 = crealf(wavelet(pa, n, gamma, j));
-		wav2 = cimagf(wavelet(pa, n, gamma, j));
+		wav1 = creal(wavelet(pa, n, gamma, j));
+		wav2 = cimag(wavelet(pa, n, gamma, j));
 		printf("pa = %f -- wav1 = %f -- wav2 = %f\n\n", fpa, wav1, wav2);
-		res1 = crealf(wavelet(pa, n, gamma, j)) * fun;
-		res2 = cimagf(wavelet(pa, n, gamma, j)) * fun;
+		res1 = creal(wavelet(pa, n, gamma, j)) * fun;
+		res2 = cimag(wavelet(pa, n, gamma, j)) * fun;
 		printf("pa %f -- res = %f + i * %f\n\n", fpa, res1, res2);
 		rez += res1;
 		img += res2;
 		free_pa_num(pa);
 		free_pa_num(fs[i]);
 	}
-	ret = rez * (float)pow(P, g_min) + I * img * (float)pow(P, g_min);
+	ret = rez * (double)power(P, g_min) + I * img * (double)power(P, g_min);
 	free(fs);
 	return ret;
 
