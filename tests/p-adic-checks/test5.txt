@@ -21,7 +21,7 @@ gmin = -1 gmax = 3 result = 0.333333
 gmin = -2 gmax = 3 result = 0.333333
 gmin = -3 gmax = 3 result = 0.333333
 
->>> p-norma function <<<
+>>> p-norm function <<<
 gmin = 0 gmax = 1 result = 6.000000
 gmin = -1 gmax = 1 result = 6.666667
 gmin = -2 gmax = 1 result = 6.740741
@@ -31,17 +31,17 @@ gmin = -5 gmax = 1 result = 6.749987
 gmin = -6 gmax = 1 result = 6.749999
 gmin = -7 gmax = 1 result = 6.750000
 gmin = -8 gmax = 1 result = 6.750000
-gmin = -9 gmax = 1 result = 6.750003
+gmin = -9 gmax = 1 result = 6.750000
 gmin = -1 gmax = 0 result = 0.666667
 gmin = -1 gmax = 1 result = 6.666667
-gmin = -1 gmax = 2 result = 60.666668
-gmin = -1 gmax = 3 result = 546.666687
-gmin = -1 gmax = 4 result = 4920.666992
-gmin = -1 gmax = 5 result = 44286.667969
-gmin = -1 gmax = 6 result = 398580.687500
-gmin = -1 gmax = 7 result = 3587226.750000
-gmin = -1 gmax = 8 result = 32280974.000000
-gmin = -1 gmax = 9 result = 290703360.000000
+gmin = -1 gmax = 2 result = 60.666667
+gmin = -1 gmax = 3 result = 546.666667
+gmin = -1 gmax = 4 result = 4920.666667
+gmin = -1 gmax = 5 result = 44286.666667
+gmin = -1 gmax = 6 result = 398580.666667
+gmin = -1 gmax = 7 result = 3587226.666667
+gmin = -1 gmax = 8 result = 32285040.666667
+gmin = -1 gmax = 9 result = 290565366.666667
 
 >>> integral with special point <<<
 Warning!!! Special point has found!
@@ -49,4 +49,4 @@ x[-1] = 0	x[0] = 0	x[1] = 0	x[2] = 0	x[3] = 0
 0.000000 is special point!
 Take x = 81.000000
 x[-1] = 0	x[0] = 0	x[1] = 0	x[2] = 0	x[3] = 0	x[4] = 1	
-Zp: 107.666664
+Zp: 107.666667

@@ -2,7 +2,7 @@
 
 
 LIST=test.lst
-CHK_DIR="./p-adic-checks"
+CHK_DIR="./tests/p-adic-checks"
 
 cleanup() {
 	rm -rf $LIST 2> /dev/null
@@ -12,17 +12,17 @@ cleanup() {
 
 cleanup
 
-ls ../bin > $LIST
+ls ./bin > $LIST
 
 for i in `cat $LIST`; do
-	../bin/$i > $CHK_DIR/$i-new.txt
+	./bin/$i > $CHK_DIR/$i-new.txt
 done
 
 for i in `cat $LIST`; do
 	diff $CHK_DIR/$i-new.txt $CHK_DIR/$i.txt > $CHK_DIR/$i.diff
 	if [ $? -ne 0 ]; then
-		echo "Difference was detected. See:"
-		cat $i.diff
+		echo "Difference was detected. $i. See:"
+		cat $CHK_DIR/$i.diff
 		cleanup
 		exit 1
 	fi
