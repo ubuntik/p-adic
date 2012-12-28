@@ -17,8 +17,8 @@ int main()
 	printf("Test#6: Wavelet integrals\n");
 
 	pfunc = function;
-	gmin = -3;
-	gmax = 0;
+	gmin = 0;
+	gmax = 3;
 	printf("Parameters: g_max = %d, g_min = %d\n", gmax, gmin);
 	gamma = 0;
 	printf("Current gamma: %d\n", gamma);

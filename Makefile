@@ -8,7 +8,7 @@ SRC_DIR = ./src
 TESTS_DIR = ./tests
 
 .PHONY: directories
-all: directories test1 test2 test3 test4 test5 test6
+all: directories test1 test2 test3 test4 test5 test6 test7
 directories: ${OBJ_DIR} ${BIN_DIR} ${SRC_DIR} ${TESTS_DIR}
 
 ${OBJ_DIR}:
@@ -40,6 +40,9 @@ test5: directories test5.o p-adic.o
 
 test6: directories test6.o p-adic.o
 	$(CC) $(CFLAGS) ${OBJ_DIR}/test6.o ${OBJ_DIR}/p-adic.o -o ${BIN_DIR}/test6 $(LIBS)
+
+test7: directories test7.o p-adic.o
+	$(CC) $(CFLAGS) ${OBJ_DIR}/test7.o ${OBJ_DIR}/p-adic.o -o ${BIN_DIR}/test7 $(LIBS)
 
 tar:
 	tar czvf ../p-adic.tar.gz ../p-adic/Makefile ../p-adic/README ../p-adic/src ../p-adic/tests
