@@ -45,7 +45,6 @@ int get_x_by_gamma(pa_num* pa, int gamma)
 	if (gamma < pa->g_min)
 		return 0;
 	else if (gamma > pa->g_max)
-//		return (pa->sign) ? (P - 1) : 0;
 		return 0;
 	return pa->x[gamma - pa->g_min];
 }
@@ -500,7 +499,7 @@ double integral(double (*func)(pa_num *pnum), int g_min, int g_max)
 
 	ret = 0;
 	for (i = 0; i < qs_sz; i++) {
-		pa = p_gamma_pa_num(fs[i], -g_min);
+		pa = p_gamma_pa_num(fs[i], g_max);
 		if ( pfunc(pa) == INFINITY ) {
 			printf("Warning!!! Special point has found!\n");
 			print_pa_num(pa);
@@ -519,7 +518,7 @@ double integral(double (*func)(pa_num *pnum), int g_min, int g_max)
 		free_pa_num(pa);
 	}
 	free(fs);
-	return ret * (double)power(P, g_min);
+	return ret * (double)power(P, -g_max);
 }
 
 complex wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
@@ -538,7 +537,8 @@ complex wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
 	fs = gen_quotient_space(g_min, g_max);
 
 	for (i = 0; i < qs_sz; i++) {
-		pa = p_gamma_pa_num(fs[i], -g_min);
+		//pa = p_gamma_pa_num(fs[i], -g_min);
+		pa = p_gamma_pa_num(fs[i], g_max);
 		print_pa_num(pa);
 		printf("%f is represetatives!\n\n", from_canonic_to_float(pa));
 		/* workaround for special point (f.i. x = 0) */
@@ -578,7 +578,7 @@ complex wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
 		free_pa_num(pa);
 		free_pa_num(fs[i]);
 	}
-	ret = rez * (double)power(P, g_min) + I * img * (double)power(P, g_min);
+	ret = rez * (double)power(P, -g_max) + I * img * (double)power(P, -g_max);
 	free(fs);
 	return ret;
 
