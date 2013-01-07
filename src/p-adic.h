@@ -66,7 +66,7 @@ PADIC_ERR sub(pa_num *res, pa_num *pa1, pa_num *pa2);
 
 PADIC_ERR add(pa_num *res, pa_num *pa1, pa_num *pa2);
 
-pa_num **gen_quotient_space(int g_min, int g_max);
+PADIC_ERR gen_quotient_space(pa_num **qs, int g_min, int g_max);
 
 PADIC_ERR p_gamma_pa_num(pa_num *res, pa_num *pa, int gamma);
 

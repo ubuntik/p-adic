@@ -4,11 +4,21 @@
 
 int main()
 {
-	pa_num** qs;
-	int qs_sz, i;
+	pa_num** qs = NULL;
+	int qs_sz = 0, i = 0;
+	PADIC_ERR err = ESUCCESS;
 
-	qs = gen_quotient_space(G_MIN, G_MAX);
 	qs_sz = (size_t)qspace_sz(G_MIN, G_MAX);
+	qs = (pa_num **)malloc(qs_sz * sizeof(pa_num*));
+	if (qs == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		return EINVPNTR;
+	}
+	err = gen_quotient_space(qs, G_MIN, G_MAX);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid generating quotient space\n");
+		return err;
+	}
 
 	printf("Test#1: Generate factor-space\n");
 	printf("p = %d; Gamma_min = %d; Gamma_max = %d\n", P, G_MIN, G_MAX);

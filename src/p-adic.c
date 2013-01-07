@@ -371,30 +371,33 @@ PADIC_ERR sub(pa_num *res, pa_num *pa1, pa_num *pa2)
 	return ESUCCESS;
 }
 
-pa_num** gen_quotient_space(int g_min, int g_max)
+PADIC_ERR gen_quotient_space(pa_num **qs, int g_min, int g_max)
 {
-	size_t qs_sz;
-	pa_num **ret;
-	int div, n, i, j, k, l, ngrp;
+	size_t qs_sz = 0;
+	int div = 0, n = 0, i = 0, j = 0, k = 0, l = 0, ngrp = 0;
+	PADIC_ERR err = ESUCCESS;
 	int min = g_min - g_max - 1;
 	if (g_max < g_min) {
 		fprintf(stderr, "Invalid gammas' values:\n");
 		fprintf(stderr, "g_min = %d should be ", g_min);
 		fprintf(stderr, "less or equal than g_max = %d\n", g_max);
 		fflush(stderr);
-		return NULL;
+		return EGAMMAOUT;
 	}
 
 	qs_sz = (size_t)qspace_sz(g_min, g_max);
-	ret = (pa_num **)malloc(qs_sz * sizeof(pa_num*));
 
 	for (i = 0; i < qs_sz; i++) {
-		ret[i] = (pa_num *)malloc(sizeof(pa_num));
-		if (ret[i] == NULL) {
+		qs[i] = (pa_num *)malloc(sizeof(pa_num));
+		if (qs[i] == NULL) {
 			fprintf(stderr, "Cannot alloc memory\n");
-			return NULL;
+			return EINVPNTR;
 		}
-		init_pa_num(ret[i], min, -1);
+		err = init_pa_num(qs[i], min, -1);
+		if (err != ESUCCESS) {
+			fprintf(stderr, "Involid init of number\n");
+			return err;
+		}
 	}
 
 	div = 1;
@@ -404,14 +407,19 @@ pa_num** gen_quotient_space(int g_min, int g_max)
 		for (j = 0; j < ngrp; j++) {
 			for (i = 0; i < P; i++) {
 				for (l = 0; l < div; l++) {
-					set_x_by_gamma(ret[n++], k, i);
+					err = set_x_by_gamma(qs[n++], k, i);
+					if (err != ESUCCESS) {
+						fprintf(stderr,
+							"Involid setting\n");
+						return err;
+					}
 				}
 			}
 		}
 		div = div * P;
 	}
 
-	return ret;
+	return ESUCCESS;
 }
 
 PADIC_ERR p_gamma_pa_num(pa_num *res, pa_num *pa, int gamma)
@@ -726,7 +734,7 @@ double integral(double (*func)(pa_num *pnum), int g_min, int g_max)
 	double ret = 0;
 	PADIC_ERR err = ESUCCESS;
 	int qs_sz = 0, i = 0;
-	pa_num **fs = NULL;
+	pa_num **qs = NULL;
 	pa_num *pa = NULL, *spoint = NULL;
 	double (*pfunc)(pa_num *pnum) = NULL;
 
@@ -743,7 +751,17 @@ double integral(double (*func)(pa_num *pnum), int g_min, int g_max)
 	}
 
 	qs_sz = (size_t)qspace_sz(g_min, g_max);
-	fs = gen_quotient_space(g_min, g_max);
+	qs = (pa_num **)malloc(qs_sz * sizeof(pa_num *));
+	if (qs == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		return EINVPNTR;
+	}
+	err = gen_quotient_space(qs, g_min, g_max);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid generating quotient space\n");
+		return err;
+	}
+
 	pfunc = func;
 
 	for (i = 0; i < qs_sz; i++) {
@@ -752,7 +770,7 @@ double integral(double (*func)(pa_num *pnum), int g_min, int g_max)
 			fprintf(stderr, "Cannot alloc memory\n");
 			return ret;
 		}
-		err = p_gamma_pa_num(pa, fs[i], g_max);
+		err = p_gamma_pa_num(pa, qs[i], g_max);
 		if (err != ESUCCESS) {
 			fprintf(stderr, "Invalid multiplication on p-gamma\n");
 			return ret;
@@ -760,7 +778,7 @@ double integral(double (*func)(pa_num *pnum), int g_min, int g_max)
 
 		if ( pfunc(pa) != INFINITY ) {
 			ret += (double)pfunc(pa);
-			free_pa_num(fs[i]);
+			free_pa_num(qs[i]);
 			free_pa_num(pa);
 			continue;
 		}
@@ -787,11 +805,11 @@ double integral(double (*func)(pa_num *pnum), int g_min, int g_max)
 		printf("Take x = %f\n", from_canonic_to_double(spoint));
 		print_pa_num(spoint);
 		ret += (double)pfunc(spoint);
-		free_pa_num(fs[i]);
+		free_pa_num(qs[i]);
 		free_pa_num(pa);
 		free_pa_num(spoint);
 	}
-	free(fs);
+	free(qs);
 	return ret * (double)power(P, -g_max);
 }
 
@@ -801,9 +819,9 @@ complex wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
 	complex ret = I;
 	PADIC_ERR err = ESUCCESS;
 	double img = 0, rez = 0, fun, wav1, wav2, res1, res2, fpa;
-	int qs_sz, i;
-	pa_num **fs;
-	pa_num *pa, *spoint;
+	int qs_sz = 0, i = 0;
+	pa_num **qs = NULL;
+	pa_num *pa = NULL, *spoint = NULL;
 	double (*pfunc)(pa_num *pnum);
 
 	if (n == NULL || func == NULL) {
@@ -825,7 +843,16 @@ complex wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
 	pfunc = func;
 	/* for integration on the "level - 1" */
 	qs_sz = (size_t)qspace_sz(g_min, g_max);
-	fs = gen_quotient_space(g_min, g_max);
+	qs = (pa_num **)malloc(qs_sz * sizeof(pa_num *));
+	if (qs == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		return EINVPNTR;
+	}
+	err = gen_quotient_space(qs, g_min, g_max);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid generating quotient space\n");
+		return err;
+	}
 
 	for (i = 0; i < qs_sz; i++) {
 		pa = (pa_num *)malloc(sizeof(pa_num));
@@ -833,7 +860,7 @@ complex wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
 			fprintf(stderr, "Cannot alloc memory\n");
 			return ret;
 		}
-		err = p_gamma_pa_num(pa, fs[i], g_max);
+		err = p_gamma_pa_num(pa, qs[i], g_max);
 		if (err != ESUCCESS) {
 			fprintf(stderr, "Invalid multiplication on p-gamma\n");
 			return ret;
@@ -854,7 +881,7 @@ complex wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
 			rez += res1;
 			img += res2;
 			free_pa_num(pa);
-			free_pa_num(fs[i]);
+			free_pa_num(qs[i]);
 			continue;
 		}
 
@@ -904,10 +931,10 @@ complex wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
 		img += res2;
 		free_pa_num(pa);
 		free_pa_num(spoint);
-		free_pa_num(fs[i]);
+		free_pa_num(qs[i]);
 	}
 	ret = rez * (double)power(P, -g_max) + I * img * (double)power(P, -g_max);
-	free(fs);
+	free(qs);
 	return ret;
 
 }

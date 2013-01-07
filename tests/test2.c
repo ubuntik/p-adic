@@ -10,21 +10,30 @@
 
 int main(int argc, char **argv)
 {
-	pa_num** qs;
-	pa_num *pgnum;
+	pa_num** qs = NULL;
+	pa_num *pgnum = NULL;
 	PADIC_ERR err = ESUCCESS;
-	int qs_sz, i, g;
+	int qs_sz = 0, i = 0, g = 0;
 
 	printf("Test#2: Generate tree\n");
 	printf("p = %d; Gamma_min = %d; Gamma_max = %d\n", P, G_MIN, G_MAX);
 
 	for (g = G_MIN; g <= G_MAX; g++) {
-		qs_sz = (size_t)qspace_sz(G_MIN, g);
-
 		printf("Gamma = %d\n", g);
+
+		qs_sz = (size_t)qspace_sz(G_MIN, g);
 		printf("Number of balls = %d\n", qs_sz);
 
-		qs = gen_quotient_space(G_MIN, g);
+		qs = (pa_num **)malloc(qs_sz * sizeof(pa_num *));
+		if (qs == NULL) {
+			fprintf(stderr, "Cannot alloc memory\n");
+			return EINVPNTR;
+		}
+		err = gen_quotient_space(qs, G_MIN, g);
+		if (err != ESUCCESS) {
+			fprintf(stderr, "Involid generating quotient space\n");
+			return err;
+		}
 
 		for (i = 0; i < qs_sz; i++) {
 			pgnum = (pa_num *)malloc(sizeof(pa_num));
