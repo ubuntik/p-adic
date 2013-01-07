@@ -27,9 +27,12 @@
 #endif
 
 
-enum PADIC_ERR {EINIT = 0,
-		EGOUT = 1
-		};
+typedef enum {ESUCCESS = 0,
+	EGAMMAOUT = 1,
+	EINVPNTR = 2,
+	EINVCOEFF = 3,
+	EINVJ = 4
+	} PADIC_ERR;
 
 enum PADIC_SIGN {POS = 0,
 		NEG = 1
@@ -45,7 +48,7 @@ struct pa_num {
 
 typedef struct pa_num pa_num;
 
-pa_num* init_pa_num(int gmin, int gmax);
+PADIC_ERR init_pa_num(pa_num *pa, int gmin, int gmax);
 
 void free_pa_num(pa_num *pa);
 
@@ -53,19 +56,19 @@ long qspace_sz(int g_min, int g_max);
 
 int get_x_by_gamma(pa_num* pa, int gamma);
 
-int set_x_by_gamma(pa_num* pa, int gamma, int x);
+PADIC_ERR set_x_by_gamma(pa_num* pa, int gamma, int x);
 
 int arith_compare(pa_num *pa1, pa_num *pa2);
 
 int reverse_sign(int sign);
 
-pa_num* sub(pa_num *pa1, pa_num *pa2);
+PADIC_ERR sub(pa_num *res, pa_num *pa1, pa_num *pa2);
 
-pa_num* add(pa_num *pa1, pa_num *pa2);
+PADIC_ERR add(pa_num *res, pa_num *pa1, pa_num *pa2);
 
 pa_num **gen_quotient_space(int g_min, int g_max);
 
-pa_num* p_gamma_pa_num(pa_num *pa, int gamma);
+PADIC_ERR p_gamma_pa_num(pa_num *res, pa_num *pa, int gamma);
 
 void print_pa_num(pa_num *pa);
 
@@ -73,22 +76,22 @@ double p_norm(pa_num *pa);
 
 int indicator(pa_num *x, pa_num *n, int gamma);
 
-double from_canonic_to_float(pa_num *pa);
+double from_canonic_to_double(pa_num *pa);
 
-pa_num* get_fractional_part(pa_num *pa);
+PADIC_ERR get_fractional_part(pa_num *fnum, pa_num *pa);
 
 complex character(pa_num *pa);
 
 complex wavelet(pa_num *x, pa_num *n, int gamma, int j);
 
-pa_num* jmult(pa_num *pa1, int j);
+PADIC_ERR jmult(pa_num *res, pa_num *pa1, int j);
 
 double integral(double (*func)(pa_num* pnum), int g_min, int g_max);
 
 complex wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma, int j, int g_min, int g_max);
 
-/* Not implemented yet */
-pa_num* mult(pa_num *pa1, pa_num *pa2);
+/* Not implemented yet 
+pa_num* mult(pa_num *pa1, pa_num *pa2); */
 
 /*TODO*/
 

@@ -11,8 +11,15 @@ int main()
 {
 	double (*pfunc)(pa_num* pnum);
 	int gmax, gmin, gamma;
-	pa_num *n;
+	pa_num *n = NULL;
 	complex ret;
+	PADIC_ERR err = ESUCCESS;
+
+	n = (pa_num *)malloc(sizeof(pa_num));
+	if (n == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		exit(-1);
+	}
 
 	printf("Test#6: Wavelet integrals\n");
 
@@ -22,7 +29,11 @@ int main()
 	printf("Parameters: g_max = %d, g_min = %d\n", gmax, gmin);
 	gamma = 0;
 	printf("Current gamma: %d\n", gamma);
-	n = init_pa_num(gmin, gmax);
+	err = init_pa_num(n, gmin, gmax);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid init of number\n");
+		exit(err);
+	}
 	ret = wavelet_integral(pfunc, n, gamma, 1, gmin, gmax);
 	printf(">>>>> Result: %f + i * %f\n\n", crealf(ret), cimagf(ret));
 	free_pa_num(n);

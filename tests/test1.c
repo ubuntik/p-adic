@@ -17,7 +17,7 @@ int main()
 		printf("Number %d:\n", i);
 		printf("Canonical view coefficients:\n");
 		print_pa_num(qs[i]);
-		printf("%g\n", from_canonic_to_float(qs[i]));
+		printf("%g\n", from_canonic_to_double(qs[i]));
 		printf("===============================\n");
 		free_pa_num(qs[i]);
 	}

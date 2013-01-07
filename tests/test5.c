@@ -2,12 +2,25 @@
 
 double wrapped_indicator(pa_num *pa)
 {
-	pa_num *n;
+	pa_num *n = NULL;
 	int gamma = -1;
-	double ret;
+	double ret = 0;
+	PADIC_ERR err = ESUCCESS;
 
-	n = init_pa_num(-2, -2);
-	set_x_by_gamma(n, -2, 1);
+	n = (pa_num *)malloc(sizeof(pa_num));
+	if (n == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		exit(-1);
+	}
+	err = init_pa_num(n, -2, -2);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid init number\n");
+		exit(err);
+	}
+	err = set_x_by_gamma(n, -2, 1);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid setting value\n");
+	}
 	ret = (double)indicator(pa, n, gamma);
 	free_pa_num(n);
 
