@@ -1,15 +1,15 @@
 #include "../src/p-adic.h"
 
-double function(pa_num* pa)
+float function(pa_num* pa)
 {
-	double ret;
-	ret = 1.0 / (p_norm(pa) * p_norm(pa));
-	return (p_norm(pa) <= (1.0 / P)) ? 0.0 : ret;
+	float ret;
+	ret = 1.f / (p_norm(pa) * p_norm(pa));
+	return (p_norm(pa) <= (1.f / P)) ? 0.f : ret;
 }
 
 int main()
 {
-	double (*pfunc)(pa_num* pnum);
+	float (*pfunc)(pa_num* pnum);
 	int gmax, gmin, gamma;
 	pa_num *n = NULL;
 	complex ret;
