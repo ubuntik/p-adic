@@ -1141,3 +1141,125 @@ complex wavelet_integral_C_gnj_x(float (*func)(pa_num *pnum), pa_num *x,
 
 }
 
+PADIC_ERR get_pa_tree(pa_tree *tree, int g_min, int g_max)
+{
+	pa_num *pgnum = NULL;
+	int i = 0, qs_sz = 0, gamma = 0;
+	pa_num **qs = NULL;
+	PADIC_ERR err = ESUCCESS;
+	int cnt = 0;
+
+	if (g_max < g_min) {
+		fprintf(stderr, "Invalid gammas' values:\n");
+		fprintf(stderr, "g_min = %d should be ", g_min);
+		fprintf(stderr, "less or equal than g_max = %d\n", g_max);
+		fflush(stderr);
+		return EGAMMAOUT;
+	}
+
+	tree->tree_sz = (power(P, g_max - g_min + 1) - 1) / (P - 1);
+
+	tree->pa_nodes = (pa_node **)malloc(tree->tree_sz * sizeof(pa_node *));
+	if (tree->pa_nodes == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		return EINVPNTR;
+	}
+
+	for (i = 0; i < tree->tree_sz; i++) {
+		tree->pa_nodes[i] = (pa_node *)malloc(sizeof(pa_node));
+		if (tree->pa_nodes[i] == NULL) {
+			fprintf(stderr, "Cannot alloc memory\n");
+			return EINVPNTR;
+		}
+	}
+
+	// first ball
+	tree->pa_nodes[0]->data = 0.f;
+	tree->pa_nodes[0]->parent = NULL;
+
+	cnt = 1;
+
+	for (gamma = g_min + 1; gamma <= g_max; gamma++) {
+		qs_sz = qspace_sz(g_min, gamma);
+		qs = (pa_num **)malloc(qs_sz * sizeof(pa_num *));
+		if (qs == NULL) {
+			fprintf(stderr, "Cannot alloc memory\n");
+			return EINVPNTR;
+		}
+		err = gen_quotient_space(qs, g_min, gamma);
+		if (err != ESUCCESS) {
+			fprintf(stderr, "Involid generating qspace\n");
+			return err;
+		}
+
+		for (i = 0; i < qs_sz; i++) {
+			pgnum = (pa_num *)malloc(sizeof(pa_num));
+			if (pgnum == NULL) {
+				fprintf(stderr, "Cannot alloc memory\n");
+				return EINVPNTR;
+			}
+			err = p_gamma_pa_num(pgnum, qs[i], gamma);
+			if (err != ESUCCESS) {
+				fprintf(stderr, "Involid mult on pgamma\n");
+				return err;
+			}
+
+			tree->pa_nodes[cnt]->data =
+				from_canonic_to_float(pgnum);
+			tree->pa_nodes[cnt]->parent =
+				tree->pa_nodes[(cnt - 1) / P];
+			cnt++;
+		}
+	}
+	return ESUCCESS;
+}
+
+void free_tree(pa_tree *tree)
+{
+	int i = 0;
+
+	for (i = 0; i < tree->tree_sz; i++) {
+		free(tree->pa_nodes[i]);
+	}
+	free(tree);
+}
+
+PADIC_ERR print_tree(pa_tree *tree, char* file_name)
+{
+	char header[] = "digraph \"p-adic_tree\" {\nn000;\nn000 [label=\"0\"];\n";
+	unsigned int i = 0;
+	char* my_str;
+	int fd;
+
+	my_str = (char *)malloc(64);
+
+	if ((fd = open(file_name, O_WRONLY | O_CREAT, 0666)) < 0) {
+		fprintf(stderr, "Can't create/open file %s\n", file_name);
+		return EINVPNTR;
+	}
+
+	if (write(fd, (void *)header, strlen(header)) < 0) {
+		fprintf(stderr, "Can't write to file %s\n", file_name);
+		return EINVPNTR;
+	}
+
+	for (i = 1; i < tree->tree_sz; i++) {
+		bzero((void *)my_str, 64);
+		snprintf(my_str, 38, "n%03u -> n%03u;\nn%03u [label=\"%3.3f\"];\n",
+				(i - 1) / P, i, i, tree->pa_nodes[i]->data);
+		if (write(fd, (void *)my_str, strlen(my_str)) < 0) {
+			fprintf(stderr, "Can't write to file %s\n", file_name);
+			return EINVPNTR;
+		}
+	}
+	bzero((void *)my_str, 64);
+	snprintf(my_str, 2, "}\n");
+	if (write(fd, (void *)my_str, strlen(my_str)) < 0) {
+		fprintf(stderr, "Can't write to file %s\n", file_name);
+		return EINVPNTR;
+	}
+
+	close(fd);
+	return ESUCCESS;
+}
+

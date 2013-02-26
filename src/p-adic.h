@@ -12,6 +12,7 @@
 #include <math.h>
 #include <complex.h>
 #include <stdint.h>
+#include <fcntl.h>
 
 #define P 3
 #define PI 3.14159265358979323846f
@@ -47,6 +48,20 @@ struct pa_num {
 };
 
 typedef struct pa_num pa_num;
+
+typedef struct pa_node pa_node;
+
+struct pa_node {
+	float data;
+	pa_node *parent;
+};
+
+struct pa_tree {
+	int tree_sz;
+	pa_node **pa_nodes;
+};
+
+typedef struct pa_tree pa_tree;
 
 float power(float base, int exponent);
 
@@ -97,4 +112,10 @@ float integral_B_x(float (*func)(pa_num *pnum), pa_num *x, int g_min, int g_max)
 
 complex wavelet_integral_C_gnj_x(float (*func)(pa_num *pnum), pa_num *x,
 		pa_num *n, int gamma, int j, int g_min, int g_max);
+
+PADIC_ERR get_pa_tree(pa_tree *tree, int g_min, int g_max);
+
+void free_tree(pa_tree *tree);
+
+PADIC_ERR print_tree(pa_tree *tree, char* file_name);
 
