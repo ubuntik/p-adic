@@ -1,7 +1,7 @@
 #include "../src/p-adic.h"
 
-#define G_MAX (3)
-#define G_MIN (0)
+#define G_MAX (1)
+#define G_MIN (-1)
 
 static int gmin = G_MIN;
 static int gmax = G_MAX;
@@ -9,7 +9,6 @@ static int gmax = G_MAX;
 // only for ALPHA = 2
 float function(pa_num* pa)
 {
-/*
 	float ret = 0;
 	if (pa == NULL) {
 		fprintf(stderr, "Involid pointer\n");
@@ -18,32 +17,28 @@ float function(pa_num* pa)
 	ret = 1.0 / (p_norm(pa) * p_norm(pa));
 	return (p_norm(pa) < power(P, -G_MAX)) ? \
 			power(P, -G_MAX) : ret;
-*/
-	return 1;
 }
 
 void do_for_n(pa_num *x, int gamma, pa_num *n)
 {
 	int j = 0;
 	complex Cgnj_x = I;
+	complex Wgnj_x = I;
 	float (*pfunc)(pa_num *pnum);
 	pfunc = function;
 
 	for (j = 1; j < P; j++) {
-//		printf("x = %f, n = %f, gamma = %d, j = %d\n", from_canonic_to_float(x),
-//				from_canonic_to_float(n), gamma, j);
-	//	Cgnj_x = wavelet_integral_C_gnj_x(pfunc, x, n, gamma, j, gamma, gmax);
-	//	Cgnj_x = wavelet_integral(pfunc, n, gamma, j, gamma, gmax);
-//		printf("Cgnj(x): %f + i * %f\n\n", crealf(Cgnj_x), cimagf(Cgnj_x));
-		printf("%f\t%f\t%d\t%d\t%f + i * %f\n", from_canonic_to_float(x),
-				from_canonic_to_float(n), gamma, j, crealf(Cgnj_x), cimagf(Cgnj_x));
+		Cgnj_x = wavelet_integral_C_gnj_x(pfunc, x, n, gamma, j, gmin, gmax);
+		Wgnj_x = wavelet_integral(pfunc, n, gamma, j, gmin, gmax);
+		printf("%f\t%f\t%d\t%d\t%f\t%f\t%f\t%f\n", from_canonic_to_float(x),
+				from_canonic_to_float(n), gamma, j, crealf(Cgnj_x), cimagf(Cgnj_x),
+				crealf(Wgnj_x), cimagf(Wgnj_x));
 	}
 }
 
 void do_for_gamma(pa_num *x, int gamma)
 {
 	int i = 0;
-	pa_num *n = NULL;
 	PADIC_ERR err = ESUCCESS;
 	int ns_sz = 0;
 	pa_num **ns = NULL;
@@ -61,22 +56,7 @@ void do_for_gamma(pa_num *x, int gamma)
 	}
 
 	for (i = 0; i < ns_sz; i++) {
-		n = (pa_num *)malloc(sizeof(pa_num));
-		if (n == NULL) {
-			fprintf(stderr,"Cannot alloc memory\n");
-			exit(-1);
-		}
-		err = p_gamma_pa_num(n, ns[i], gmax);
-		if (err != ESUCCESS) {
-			fprintf(stderr,"Involid mult pgamma\n");
-			exit(err);
-		}
-//		printf("n = %f\n", from_canonic_to_float(n));
-//		print_pa_num(n);
-
-		do_for_n(x, gamma, n);
-
-		free_pa_num(n);
+		do_for_n(x, gamma, ns[i]);
 		free_pa_num(ns[i]);
 	}
 	free(ns);
@@ -95,7 +75,6 @@ void do_for_x(pa_num *x)
 
 	// count Cgnj(x) integral
 	for (gamma = gmin; gamma < gmax; gamma++) {
-//		printf("gamma = %d\n", gamma);
 		do_for_gamma(x, gamma);
 	}
 }

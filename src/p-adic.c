@@ -625,9 +625,6 @@ complex character(pa_num *pa)
 		return ret;
 	}
 
-//	printf("fract part: %f\n", from_canonic_to_float(fnum));
-//	printf("exp in char: %f\n", 2 * PI * from_canonic_to_float(fnum));
-
 	ret = cexpf(2 * PI * I * \
 			from_canonic_to_float(fnum));
 	free_pa_num(fnum);
@@ -683,8 +680,6 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 		ret = crealf(character(jkern)) + I * cimagf(character(jkern));
 	else
 		ret = 0 + I * 0;
-
-//	printf("\nind: %d ; char: %f + i %f\n", indicator(x, n, gamma), crealf(character(jkern)), cimagf(character(jkern)));
 
 	free_pa_num(jkern);
 	free_pa_num(kern);
