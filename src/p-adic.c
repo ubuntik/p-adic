@@ -152,6 +152,54 @@ int reverse_sign(int sign)
 	return (sign == POS) ? NEG : POS;
 }
 
+int __s_get_x_by_gamma(pa_num* pa, int gamma)
+{
+	if (pa == NULL) {
+		fprintf(stderr, "Invalid pointer\n");
+		return -1;
+	}
+	if (gamma < pa->g_min)
+		return pa->sign ? (P - 1) : 0;
+	else if (gamma > pa->g_max)
+		return 0;
+	return pa->x[gamma - pa->g_min];
+}
+
+PADIC_ERR __sign_sub(pa_num *res, pa_num *pn1, pa_num *pn2)
+{
+	int in_mind = 0;
+	int coeff = 0, i = 0;
+	PADIC_ERR err = ESUCCESS;
+
+	if (res == NULL || pn1 == NULL || pn2 == NULL) {
+		fprintf(stderr, "Invalid pointer\n");
+		return EINVPNTR;
+	}
+
+	err = init_pa_num(res, (pn1->g_min < pn2->g_min) ? pn1->g_min : pn2->g_min,
+			(pn1->g_max > pn2->g_max) ? (pn1->g_max + 1) : (pn2->g_max + 1));
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Invalid init of number\n");
+		return err;
+	}
+
+
+	for (i = res->g_min; i <= res->g_max; i++) {
+		(in_mind) ? (coeff = __s_get_x_by_gamma(pn1, i) - \
+				__s_get_x_by_gamma(pn2, i) - 1) : \
+			(coeff = __s_get_x_by_gamma(pn1, i) - \
+				__s_get_x_by_gamma(pn2, i));
+		if (coeff >= 0) {
+			set_x_by_gamma(res, i, coeff);
+			in_mind = 0;
+		} else {
+			set_x_by_gamma(res, i, coeff + P);
+			in_mind = 1;
+		}
+	}
+	return ESUCCESS;
+}
+
 PADIC_ERR __dummy_sub(pa_num *res, pa_num *pn1, pa_num *pn2)
 {
 	int in_mind = 0;
@@ -625,7 +673,7 @@ complex character(pa_num *pa)
 		return ret;
 	}
 
-	ret = cexpf(2 * PI * I * \
+	ret = cexpf(2 * PI * I *
 			from_canonic_to_float(fnum));
 	free_pa_num(fnum);
 	return ret;
@@ -676,6 +724,7 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 		fprintf(stderr, "Invalid multiplication on j\n");
 		return ret;
 	}
+
 	if (indicator(x, n, gamma))
 		ret = crealf(character(jkern)) + I * cimagf(character(jkern));
 	else
@@ -686,7 +735,6 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 	free_pa_num(mult);
 	free_pa_num(subtr);
 
-//	return crealf(ret) + I * cimagf(ret);
 	return ret;
 }
 
@@ -873,8 +921,8 @@ complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
 		/* workaround for special point (f.i. x = 0) */
 		if ( pfunc(pa) != INFINITY ) {
 			fun = pfunc(pa);
-			rez += crealf(wavelet(pa, n, gamma, j)) * fun;
-			img += cimagf(wavelet(pa, n, gamma, j)) * fun;
+			rez += crealf(wavelet(pa, n, -gamma, j)) * fun;
+			img += cimagf(wavelet(pa, n, -gamma, j)) * fun;
 			free_pa_num(pa);
 			free_pa_num(qs[i]);
 			continue;
@@ -905,8 +953,8 @@ complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
 		print_pa_num(spoint);
 
 		fun = pfunc(spoint);
-		rez += crealf(wavelet(pa, n, gamma, j)) * fun;
-		img += cimagf(wavelet(pa, n, gamma, j)) * fun;
+		rez += crealf(wavelet(pa, n, -gamma, j)) * fun;
+		img += cimagf(wavelet(pa, n, -gamma, j)) * fun;
 		free_pa_num(pa);
 		free_pa_num(spoint);
 		free_pa_num(qs[i]);
@@ -1078,12 +1126,13 @@ complex wavelet_integral_C_gnj_x(float (*func)(pa_num *pnum), pa_num *x,
 			fprintf(stderr, "Invalid multiplication on p-gamma\n");
 			return ret;
 		}
+
 		res = (pa_num *)malloc(sizeof(pa_num));
 		if (res == NULL) {
 			fprintf(stderr, "Cannot alloc memory\n");
 			return ret;
 		}
-		err = sub(res, x, pa);
+		err = __sign_sub(res, x, pa);
 		if (err != ESUCCESS) {
 			fprintf(stderr, "Involid subtraction\n");
 			return err;
@@ -1092,8 +1141,8 @@ complex wavelet_integral_C_gnj_x(float (*func)(pa_num *pnum), pa_num *x,
 		/* workaround for special point (f.i. x = 0) */
 		if ( pfunc(res) != INFINITY ) {
 			fun = pfunc(res);
-			rez += crealf(wavelet(res, n, gamma, j)) * fun;
-			img += cimagf(wavelet(res, n, gamma, j)) * fun;
+			rez += crealf(wavelet(res, n, -gamma, j)) * fun;
+			img += cimagf(wavelet(res, n, -gamma, j)) * fun;
 			free_pa_num(pa);
 			free_pa_num(res);
 			free_pa_num(qs[i]);
@@ -1123,9 +1172,109 @@ complex wavelet_integral_C_gnj_x(float (*func)(pa_num *pnum), pa_num *x,
 		print_pa_num(spoint);
 
 		fun = pfunc(spoint);
-		rez += crealf(wavelet(res, n, gamma, j)) * fun;
-		img += cimagf(wavelet(res, n, gamma, j)) * fun;
+		rez += crealf(wavelet(res, n, -gamma, j)) * fun;
+		img += cimagf(wavelet(res, n, -gamma, j)) * fun;
 		free_pa_num(res);
+		free_pa_num(pa);
+		free_pa_num(spoint);
+		free_pa_num(qs[i]);
+	}
+	ret = rez * power((float)P, -g_max) + I * img * power((float)P, -g_max);
+	free(qs);
+	return ret;
+
+}
+
+complex wavelet_integral_Agnj(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
+						int j, int g_min, int g_max)
+{
+	// start condition + sopryazhenniy wavelet
+	complex ret = I;
+	PADIC_ERR err = ESUCCESS;
+	float img = 0, rez = 0, fun = 0;
+	int qs_sz = 0, i = 0;
+	pa_num **qs = NULL;
+	pa_num *pa = NULL, *spoint = NULL;
+	float (*pfunc)(pa_num *pnum);
+
+	if (n == NULL || func == NULL) {
+		fprintf(stderr, "Invalid pointer\n");
+		return EINVPNTR;
+	}
+	if (j <= 0 || j >= P) {
+		fprintf(stderr, "Invalid value of j\n");
+		return EINVJ;
+	}
+	if (gamma < g_min || gamma > g_max) {
+		fprintf(stderr, "Invalid Value gamma: %d\n", gamma);
+		fprintf(stderr, "gamma should be greater than %d\n", g_min);
+		fprintf(stderr, "gamma should be less than %d\n", g_max);
+		fflush(stderr);
+		return EGAMMAOUT;
+	}
+
+	pfunc = func;
+	/* for integration on the "level - 1" */
+	qs_sz = (size_t)qspace_sz(g_min, g_max);
+	qs = (pa_num **)malloc(qs_sz * sizeof(pa_num *));
+	if (qs == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		return EINVPNTR;
+	}
+	err = gen_quotient_space(qs, g_min, g_max);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid generating quotient space\n");
+		return err;
+	}
+
+	for (i = 0; i < qs_sz; i++) {
+		pa = (pa_num *)malloc(sizeof(pa_num));
+		if (pa == NULL) {
+			fprintf(stderr, "Cannot alloc memory\n");
+			return ret;
+		}
+		err = p_gamma_pa_num(pa, qs[i], g_max);
+		if (err != ESUCCESS) {
+			fprintf(stderr, "Invalid multiplication on p-gamma\n");
+			return ret;
+		}
+		/* workaround for special point (f.i. x = 0) */
+		if ( pfunc(pa) != INFINITY ) {
+			fun = pfunc(pa);
+			rez += crealf(wavelet(pa, n, -gamma, j)) * fun;
+			img += cimagf(wavelet(pa, n, -gamma, j)) * fun;
+			free_pa_num(pa);
+			free_pa_num(qs[i]);
+			continue;
+		}
+
+		printf("Warning!!! Special point has found!\n");
+		print_pa_num(pa);
+		printf("%f is special point!\n", from_canonic_to_float(pa));
+
+		spoint = (pa_num *)malloc(sizeof(pa_num));
+		if (spoint == NULL) {
+			fprintf(stderr, "Cannot alloc memory\n");
+			return ret;
+		}
+		err = __extend_number(spoint, pa, pa->g_min,
+							pa->g_max + 1);
+		if (err != ESUCCESS) {
+			fprintf(stderr, "Invalid extending number\n");
+			return err;
+		}
+		err = set_x_by_gamma(spoint, pa->g_max + 1, 1);
+		if (err != ESUCCESS) {
+			fprintf(stderr, "Invalid setting coeff\n");
+			return err;
+		}
+
+		printf("Take x = %f\n", from_canonic_to_float(spoint));
+		print_pa_num(spoint);
+
+		fun = pfunc(spoint);
+		rez += crealf(wavelet(pa, n, -gamma, j)) * fun;
+		img += cimagf(wavelet(pa, n, -gamma, j)) * fun;
 		free_pa_num(pa);
 		free_pa_num(spoint);
 		free_pa_num(qs[i]);

@@ -1,7 +1,7 @@
 #include "../src/p-adic.h"
 
-#define G_MAX (1)
-#define G_MIN (-1)
+#define G_MAX (0)
+#define G_MIN (-3)
 
 static int gmin = G_MIN;
 static int gmax = G_MAX;
