@@ -6,7 +6,7 @@ Number 0:
 Canonical view coefficients:
 x[0] = 0	
 User friendly view:
-0
+0.000000
 ===============================
 ###############################
 Gamma = 2
@@ -15,18 +15,18 @@ Number 0:
 Canonical view coefficients:
 x[0] = 0	x[1] = 0	
 User friendly view:
-0
+0.000000
 ===============================
 Number 1:
 Canonical view coefficients:
 x[0] = 0	x[1] = 1	
 User friendly view:
-3
+3.000000
 ===============================
 Number 2:
 Canonical view coefficients:
 x[0] = 0	x[1] = 2	
 User friendly view:
-6
+6.000000
 ===============================
 ###############################

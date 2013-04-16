@@ -3,7 +3,7 @@ p = 3; Gamma_min = -1; Gamma_max = 1
 Number 0:
 Canonical view coefficients:
 x[-3] = 0	x[-2] = 0	x[-1] = 0	
-0
+0.000000
 ===============================
 Number 1:
 Canonical view coefficients:

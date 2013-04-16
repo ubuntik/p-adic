@@ -1,10 +1,10 @@
 #include "../src/p-adic.h"
 
-double wrapped_indicator(pa_num *pa)
+float wrapped_indicator(pa_num *pa)
 {
 	pa_num *n = NULL;
 	int gamma = -1;
-	double ret = 0;
+	float ret = 0;
 	PADIC_ERR err = ESUCCESS;
 
 	n = (pa_num *)malloc(sizeof(pa_num));
@@ -21,31 +21,31 @@ double wrapped_indicator(pa_num *pa)
 	if (err != ESUCCESS) {
 		fprintf(stderr, "Involid setting value\n");
 	}
-	ret = (double)indicator(pa, n, gamma);
+	ret = (float)indicator(pa, n, gamma);
 	free_pa_num(n);
 
 	return ret;
 }
 
-double function(pa_num* pa)
+float function(pa_num* pa)
 {
 	float ret;
 	ret = wrapped_indicator(pa) * p_norm(pa);
 	return ret;
 }
 
-double sp_point(pa_num* pa)
+float sp_point(pa_num* pa)
 {
-	double ret;
+	float ret;
 	ret = p_norm(pa) * p_norm(pa);
 	return 1 / ret;
 }
 
 int main()
 {
-	double res;
-	double res1, res2, res3;
-	double (*pfunc)(pa_num* pnum);
+	float res;
+	float res1, res2, res3;
+	float (*pfunc)(pa_num* pnum);
 	int gmax, gmin;
 
 	printf("Test#5: Integrals\n");

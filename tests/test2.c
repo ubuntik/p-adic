@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 			printf("Canonical view coefficients:\n");
 			print_pa_num(pgnum);
 			printf("User friendly view:\n");
-			printf("%g\n", from_canonic_to_double(pgnum));
+			printf("%f\n", from_canonic_to_float(pgnum));
 			printf("===============================\n");
 			free_pa_num(pgnum);
 			free_pa_num(qs[i]);

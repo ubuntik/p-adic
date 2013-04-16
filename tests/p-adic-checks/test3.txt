@@ -15,7 +15,7 @@ pa1 - pa2 = {Negative number:	x[-2] = 2
 pa1 - pa2 = -0.222222
 
 pa1 + pa2 = {x[-1] = 1	x[0] = 1	
-pa1 + pa2 = 1.33333
+pa1 + pa2 = 1.333333
 
 pa2 - pa1 = {x[-2] = 2	
 pa2 - pa1 = 0.222222
@@ -30,13 +30,13 @@ pa2 = 0.777778
 
 Check their subtraction and addition:
 pa1 - pa2 = {Negative number:	x[-1] = 1	x[0] = 1	
-pa1 - pa2 = -1.33333
+pa1 - pa2 = -1.333333
 
 pa1 + pa2 = {x[-2] = 2	
 pa1 - pa2 = 0.222222
 
 pa2 - pa1 = {x[-1] = 1	x[0] = 1	
-pa2 - pa1 = 1.33333
+pa2 - pa1 = 1.333333
 
 pa2 + pa1 = {x[-2] = 2	
 pa2 + pa1 = 0.222222
@@ -47,7 +47,7 @@ pa1 = 0.555556
 
 Check multiplication of p-adic number and p^gamma:
 pa1 * p^2 = {x[0] = 2	x[1] = 1	
-pa1 * p^2 = 5
+pa1 * p^2 = 5.000000
 
 >>> Checking Indicator function <<< 
 

@@ -1279,7 +1279,8 @@ complex wavelet_integral_Agnj(float (*func)(pa_num *pnum), pa_num *n, int gamma,
 		free_pa_num(spoint);
 		free_pa_num(qs[i]);
 	}
-	ret = rez * power((float)P, -g_max) + I * img * power((float)P, -g_max);
+	// sopryazhennie
+	ret = rez * power((float)P, -g_max) - I * img * power((float)P, -g_max);
 	free(qs);
 	return ret;
 
