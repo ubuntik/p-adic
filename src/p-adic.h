@@ -14,6 +14,8 @@
 #include <stdint.h>
 #include <fcntl.h>
 
+#define _Complex double
+
 #define P 3
 #define PI 3.14159265358979323846f
 
@@ -32,7 +34,8 @@ typedef enum {ESUCCESS = 0,
 	EGAMMAOUT = 1,
 	EINVPNTR = 2,
 	EINVCOEFF = 3,
-	EINVJ = 4
+	EINVJ = 4,
+	EMALLOC = 5
 	} PADIC_ERR;
 
 enum PADIC_SIGN {POS = 0,
@@ -52,7 +55,7 @@ typedef struct pa_num pa_num;
 typedef struct pa_node pa_node;
 
 struct pa_node {
-	float data;
+	double data;
 	pa_node *parent;
 };
 
@@ -63,7 +66,7 @@ struct pa_tree {
 
 typedef struct pa_tree pa_tree;
 
-float power(float base, int exponent);
+double power(double base, double exponent);
 
 PADIC_ERR init_pa_num(pa_num *pa, int gmin, int gmax);
 
@@ -74,6 +77,10 @@ long qspace_sz(int g_min, int g_max);
 int get_x_by_gamma(pa_num* pa, int gamma);
 
 PADIC_ERR set_x_by_gamma(pa_num* pa, int gamma, int x);
+
+PADIC_ERR __extend_number(pa_num *ext_pa, pa_num *pa, int g_min, int g_max);
+
+PADIC_ERR __sign_sub(pa_num *res, pa_num *pn1, pa_num *pn2);
 
 int arith_compare(pa_num *pa1, pa_num *pa2);
 
@@ -89,11 +96,11 @@ PADIC_ERR p_gamma_pa_num(pa_num *res, pa_num *pa, int gamma);
 
 void print_pa_num(pa_num *pa);
 
-float p_norm(pa_num *pa);
+double p_norm(pa_num *pa);
 
 int indicator(pa_num *x, pa_num *n, int gamma);
 
-float from_canonic_to_float(pa_num *pa);
+double from_canonic_to_double(pa_num *pa);
 
 PADIC_ERR get_fractional_part(pa_num *fnum, pa_num *pa);
 
@@ -103,15 +110,18 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j);
 
 PADIC_ERR jmult(pa_num *res, pa_num *pa1, int j);
 
-float integral(float (*func)(pa_num* pnum), int g_min, int g_max);
+double integral(double (*func)(pa_num* pnum), int g_min, int g_max);
 
-complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma,
+complex wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma,
 		int j, int g_min, int g_max);
 
-float integral_B_x(float (*func)(pa_num *pnum), pa_num *x, int g_min, int g_max);
+double integral_B_x(double (*func)(pa_num *pnum), pa_num *x, int g_min, int g_max);
 
-complex wavelet_integral_C_gnj_x(float (*func)(pa_num *pnum), pa_num *x,
+complex wavelet_integral_C_gnj_x(double (*func)(pa_num *pnum), pa_num *x,
 		pa_num *n, int gamma, int j, int g_min, int g_max);
+
+complex wavelet_integral_Agnj(double (*func)(pa_num *pnum), pa_num *n, int gamma,
+		int j, int g_min, int g_max);
 
 PADIC_ERR get_pa_tree(pa_tree *tree, int g_min, int g_max);
 

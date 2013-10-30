@@ -509,22 +509,30 @@ void print_pa_num(pa_num *pa)
 	fflush(stdout);
 }
 
-float power(float base, int exponent)
+double power(double base, double exponent)
 {
-	float half_pow = 0;
-	if (exponent == 0)
-		return (float)1;
-	else if (exponent < 0)
-		return (float)1 / power(base, -exponent);
-	else if (fmod(exponent, 2) == 0) {
-		half_pow = power(base, exponent / (float)2);
-		return half_pow * half_pow;
+	double half_pow = 0.0;
+	double int_part = 0.0;
+	double fr_part = modf(exponent, &int_part);
+
+	if ((fr_part != 0) && (fr_part != 0.5)) {
+		return pow(base, exponent);
+	} else if (fr_part == 0.5) {
+		return (sqrt(base) * power(base, int_part));
 	}
-	else
+
+	if (exponent == 0)
+		return (double)1;
+	else if (exponent < 0)
+		return (double)1 / power(base, -exponent);
+	else if (fmod(exponent, 2) == 0) {
+		half_pow = power(base, exponent / (double)2);
+		return half_pow * half_pow;
+	} else
 		return base * power(base, exponent - 1);
 }
 
-float p_norm(pa_num *pa)
+double p_norm(pa_num *pa)
 {
 	int i = 0, res = INT_MAX;
 
@@ -544,9 +552,9 @@ float p_norm(pa_num *pa)
 
 	/* it means, we check all coeffs in an array and all of them are null*/
 	if (res == INT_MAX)
-		return (float)0;
+		return (double)0;
 
-	return power((float)P, -res);
+	return power((double)P, -res);
 }
 
 int indicator(pa_num *x, pa_num *n, int gamma)
@@ -592,11 +600,11 @@ int indicator(pa_num *x, pa_num *n, int gamma)
 	return (norm > 1) ? 0 : 1;
 }
 
-float from_canonic_to_float(pa_num *pa)
+double from_canonic_to_double(pa_num *pa)
 {
 	int i = 0;
-	float ret = 0;
-	float ppow = 0;
+	double ret = 0;
+	double ppow = 0;
 
 	if (pa == NULL) {
 		fprintf(stderr, "Invalid pointer\n");
@@ -605,7 +613,7 @@ float from_canonic_to_float(pa_num *pa)
 
 	ppow = power(P, pa->g_min);
 	for (i = pa->g_min; i <= pa->g_max; i++) {
-		ret += (float)get_x_by_gamma(pa, i) * ppow;
+		ret += (double)get_x_by_gamma(pa, i) * ppow;
 		ppow = ppow * P;
 	}
 
@@ -674,11 +682,13 @@ complex character(pa_num *pa)
 	}
 
 	ret = cexpf(2 * PI * I *
-			from_canonic_to_float(fnum));
+			from_canonic_to_double(fnum));
 	free_pa_num(fnum);
 	return ret;
 }
 
+
+// * gamma / 2
 complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 {
 	pa_num *kern = NULL, *jkern = NULL;
@@ -725,9 +735,11 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 		return ret;
 	}
 
-	if (indicator(x, n, gamma))
-		ret = crealf(character(jkern)) + I * cimagf(character(jkern));
-	else
+	if (indicator(x, n, gamma)) {
+//		ret = creal(character(jkern)) + I * cimag(character(jkern));
+		ret = creal(character(jkern)) * power(P, -(double)gamma / 2) +
+			I * cimag(character(jkern)) * power(P, -(double)gamma / 2);
+	} else
 		ret = 0 + I * 0;
 
 	free_pa_num(jkern);
@@ -782,14 +794,14 @@ pa_num* mult(pa_num *pa1, pa_num *pa2)
 }
 #endif
 
-float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
+double integral(double (*func)(pa_num *pnum), int g_min, int g_max)
 {
-	float ret = 0;
+	double ret = 0;
 	PADIC_ERR err = ESUCCESS;
 	int qs_sz = 0, i = 0;
 	pa_num **qs = NULL;
 	pa_num *pa = NULL, *spoint = NULL;
-	float (*pfunc)(pa_num *pnum) = NULL;
+	double (*pfunc)(pa_num *pnum) = NULL;
 
 	if (func == NULL) {
 		fprintf(stderr, "Invalid pointer\n");
@@ -830,15 +842,15 @@ float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
 		}
 
 		if ( pfunc(pa) != INFINITY ) {
-			ret += (float)pfunc(pa);
+			ret += (double)pfunc(pa);
 			free_pa_num(qs[i]);
 			free_pa_num(pa);
 			continue;
 		}
 
-		printf("Warning!!! Special point has found!\n");
+		fprintf(stderr, "Warning!!! Special point has found!\n");
 		print_pa_num(pa);
-		printf("%f is special point!\n", from_canonic_to_float(pa));
+		fprintf(stderr, "%g is special point!\n", from_canonic_to_double(pa));
 		spoint = (pa_num *)malloc(sizeof(pa_num));
 		if (spoint == NULL) {
 			fprintf(stderr, "Cannot alloc memory\n");
@@ -855,27 +867,27 @@ float integral(float (*func)(pa_num *pnum), int g_min, int g_max)
 			fprintf(stderr, "Invalid setting coeff\n");
 			return err;
 		}
-		printf("Take x = %f\n", from_canonic_to_float(spoint));
+		fprintf(stderr, "Take x = %g\n", from_canonic_to_double(spoint));
 		print_pa_num(spoint);
-		ret += (float)pfunc(spoint);
+		ret += (double)pfunc(spoint);
 		free_pa_num(qs[i]);
 		free_pa_num(pa);
 		free_pa_num(spoint);
 	}
 	free(qs);
-	return ret * power((float)P, -g_max);
+	return ret * power((double)P, -g_max);
 }
 
-complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
+complex wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
 						int j, int g_min, int g_max)
 {
 	complex ret = I;
 	PADIC_ERR err = ESUCCESS;
-	float img = 0, rez = 0, fun = 0;
+	double img = 0, rez = 0, fun = 0;
 	int qs_sz = 0, i = 0;
 	pa_num **qs = NULL;
 	pa_num *pa = NULL, *spoint = NULL;
-	float (*pfunc)(pa_num *pnum);
+	double (*pfunc)(pa_num *pnum);
 
 	if (n == NULL || func == NULL) {
 		fprintf(stderr, "Invalid pointer\n");
@@ -930,7 +942,7 @@ complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
 
 		printf("Warning!!! Special point has found!\n");
 		print_pa_num(pa);
-		printf("%f is special point!\n", from_canonic_to_float(pa));
+		printf("%g is special point!\n", from_canonic_to_double(pa));
 
 		spoint = (pa_num *)malloc(sizeof(pa_num));
 		if (spoint == NULL) {
@@ -949,7 +961,7 @@ complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
 			return err;
 		}
 
-		printf("Take x = %f\n", from_canonic_to_float(spoint));
+		printf("Take x = %g\n", from_canonic_to_double(spoint));
 		print_pa_num(spoint);
 
 		fun = pfunc(spoint);
@@ -959,20 +971,20 @@ complex wavelet_integral(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
 		free_pa_num(spoint);
 		free_pa_num(qs[i]);
 	}
-	ret = rez * power((float)P, -g_max) + I * img * power((float)P, -g_max);
+	ret = rez * power((double)P, -g_max) + I * img * power((double)P, -g_max);
 	free(qs);
 	return ret;
 
 }
 
-float integral_B_x(float (*func)(pa_num *pnum), pa_num *x, int g_min, int g_max)
+double integral_B_x(double (*func)(pa_num *pnum), pa_num *x, int g_min, int g_max)
 {
-	float ret = 0;
+	double ret = 0;
 	PADIC_ERR err = ESUCCESS;
 	int qs_sz = 0, i = 0;
 	pa_num **qs = NULL;
 	pa_num *pa = NULL, *spoint = NULL, *res= NULL;
-	float (*pfunc)(pa_num *pnum) = NULL;
+	double (*pfunc)(pa_num *pnum) = NULL;
 
 	if (func == NULL) {
 		fprintf(stderr, "Invalid pointer\n");
@@ -1025,7 +1037,7 @@ float integral_B_x(float (*func)(pa_num *pnum), pa_num *x, int g_min, int g_max)
 		}
 
 		if ( pfunc(res) != INFINITY ) {
-			ret += (float)pfunc(res);
+			ret += (double)pfunc(res);
 			free_pa_num(qs[i]);
 			free_pa_num(pa);
 			free_pa_num(res);
@@ -1034,7 +1046,7 @@ float integral_B_x(float (*func)(pa_num *pnum), pa_num *x, int g_min, int g_max)
 
 		printf("Warning!!! Special point has found!\n");
 		print_pa_num(pa);
-		printf("%f is special point!\n", from_canonic_to_float(pa));
+		printf("%g is special point!\n", from_canonic_to_double(pa));
 
 		spoint = (pa_num *)malloc(sizeof(pa_num));
 		if (spoint == NULL) {
@@ -1065,25 +1077,25 @@ float integral_B_x(float (*func)(pa_num *pnum), pa_num *x, int g_min, int g_max)
 			return err;
 		}
 
-		ret += (float)pfunc(res);
+		ret += (double)pfunc(res);
 		free_pa_num(qs[i]);
 		free_pa_num(pa);
 		free_pa_num(spoint);
 	}
 	free(qs);
-	return ret * power((float)P, -g_max);
+	return ret * power((double)P, -g_max);
 }
 
-complex wavelet_integral_C_gnj_x(float (*func)(pa_num *pnum), pa_num *x,
+complex wavelet_integral_C_gnj_x(double (*func)(pa_num *pnum), pa_num *x,
 		pa_num *n, int gamma, int j, int g_min, int g_max)
 {
 	complex ret = I;
 	PADIC_ERR err = ESUCCESS;
-	float img = 0, rez = 0, fun = 0;
+	double img = 0, rez = 0, fun = 0;
 	int qs_sz = 0, i = 0;
 	pa_num **qs = NULL;
 	pa_num *pa = NULL, *spoint = NULL, *res = NULL;
-	float (*pfunc)(pa_num *pnum);
+	double (*pfunc)(pa_num *pnum);
 
 	if (n == NULL || func == NULL) {
 		fprintf(stderr, "Invalid pointer\n");
@@ -1168,7 +1180,7 @@ complex wavelet_integral_C_gnj_x(float (*func)(pa_num *pnum), pa_num *x,
 			return err;
 		}
 
-		printf("Take x = %f\n", from_canonic_to_float(spoint));
+		printf("Take x = %g\n", from_canonic_to_double(spoint));
 		print_pa_num(spoint);
 
 		fun = pfunc(spoint);
@@ -1179,23 +1191,23 @@ complex wavelet_integral_C_gnj_x(float (*func)(pa_num *pnum), pa_num *x,
 		free_pa_num(spoint);
 		free_pa_num(qs[i]);
 	}
-	ret = rez * power((float)P, -g_max) + I * img * power((float)P, -g_max);
+	ret = rez * power((double)P, -g_max) + I * img * power((double)P, -g_max);
 	free(qs);
 	return ret;
 
 }
 
-complex wavelet_integral_Agnj(float (*func)(pa_num *pnum), pa_num *n, int gamma, \
+complex wavelet_integral_Agnj(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
 						int j, int g_min, int g_max)
 {
 	// start condition + sopryazhenniy wavelet
 	complex ret = I;
 	PADIC_ERR err = ESUCCESS;
-	float img = 0, rez = 0, fun = 0;
+	double img = 0, rez = 0, fun = 0;
 	int qs_sz = 0, i = 0;
 	pa_num **qs = NULL;
 	pa_num *pa = NULL, *spoint = NULL;
-	float (*pfunc)(pa_num *pnum);
+	double (*pfunc)(pa_num *pnum);
 
 	if (n == NULL || func == NULL) {
 		fprintf(stderr, "Invalid pointer\n");
@@ -1250,7 +1262,7 @@ complex wavelet_integral_Agnj(float (*func)(pa_num *pnum), pa_num *n, int gamma,
 
 		printf("Warning!!! Special point has found!\n");
 		print_pa_num(pa);
-		printf("%f is special point!\n", from_canonic_to_float(pa));
+		printf("%g is special point!\n", from_canonic_to_double(pa));
 
 		spoint = (pa_num *)malloc(sizeof(pa_num));
 		if (spoint == NULL) {
@@ -1269,7 +1281,7 @@ complex wavelet_integral_Agnj(float (*func)(pa_num *pnum), pa_num *n, int gamma,
 			return err;
 		}
 
-		printf("Take x = %f\n", from_canonic_to_float(spoint));
+		printf("Take x = %g\n", from_canonic_to_double(spoint));
 		print_pa_num(spoint);
 
 		fun = pfunc(spoint);
@@ -1280,7 +1292,7 @@ complex wavelet_integral_Agnj(float (*func)(pa_num *pnum), pa_num *n, int gamma,
 		free_pa_num(qs[i]);
 	}
 	// sopryazhennie
-	ret = rez * power((float)P, -g_max) - I * img * power((float)P, -g_max);
+	ret = rez * power((double)P, -g_max) - I * img * power((double)P, -g_max);
 	free(qs);
 	return ret;
 
@@ -1350,7 +1362,7 @@ PADIC_ERR get_pa_tree(pa_tree *tree, int g_min, int g_max)
 			}
 
 			tree->pa_nodes[cnt]->data =
-				from_canonic_to_float(pgnum);
+				from_canonic_to_double(pgnum);
 			tree->pa_nodes[cnt]->parent =
 				tree->pa_nodes[(cnt - 1) / P];
 			cnt++;
