@@ -4,8 +4,8 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-#define G_MAX (0)
-#define G_MIN (-2)
+#define G_MAX (-2)
+#define G_MIN (-5)
 #define XSZ (G_MAX - G_MIN)
 
 int main(int argc, char **argv)

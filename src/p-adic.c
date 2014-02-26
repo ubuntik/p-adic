@@ -355,6 +355,8 @@ PADIC_ERR add(pa_num *res, pa_num *pa1, pa_num *pa2)
 	return ESUCCESS;
 }
 
+// TODO: for DEBUG -- add args and res print for add() and sub()
+
 PADIC_ERR sub(pa_num *res, pa_num *pa1, pa_num *pa2)
 {
 	int min = 0, max = 0;
@@ -496,6 +498,9 @@ PADIC_ERR p_gamma_pa_num(pa_num *res, pa_num *pa, int gamma)
 	}
 	return ESUCCESS;
 }
+
+// TODO: # 3.. 6:+: 1, 2, 1, 0
+// according to flag: PA_LONG_PRINT
 
 void print_pa_num(pa_num *pa)
 {
@@ -714,6 +719,11 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 		return ret;
 	}
 
+
+//	print_pa_num(x);
+//	fprintf(stdout, "x-y = %g\n", from_canonic_to_double(x));
+
+
 	err = p_gamma_pa_num(mult, x, gamma);
 	if (err != ESUCCESS) {
 		fprintf(stderr, "Invalid multiplication on p-gamma\n");
@@ -724,6 +734,12 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 		fprintf(stderr, "Invalid subtraction\n");
 		return ret;
 	}
+
+
+//	print_pa_num(subtr);
+//	fprintf(stdout, "p^g(x-y) - n = %g\n", from_canonic_to_double(subtr));
+
+
 	err = p_gamma_pa_num(kern, subtr, -1);
 	if (err != ESUCCESS) {
 		fprintf(stderr, "Invalid multiplication on p-gamma\n");
@@ -734,6 +750,12 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 		fprintf(stderr, "Invalid multiplication on j\n");
 		return ret;
 	}
+
+//	print_pa_num(jkern);
+//	fprintf(stdout, "char kern = %g\n", from_canonic_to_double(jkern));
+
+//	if (p_norm(subtr) <= 1)
+//		fprintf(stdout, "%g >>> DONE!!!\n", from_canonic_to_double(subtr));
 
 	if (indicator(x, n, gamma)) {
 //		ret = creal(character(jkern)) + I * cimag(character(jkern));
@@ -833,15 +855,19 @@ double integral(double (*func)(pa_num *pnum), int g_min, int g_max)
 		pa = (pa_num *)malloc(sizeof(pa_num));
 		if (pa == NULL) {
 			fprintf(stderr, "Cannot alloc memory\n");
-			return ret;
+			return EMALLOC;
 		}
 		err = p_gamma_pa_num(pa, qs[i], g_max);
 		if (err != ESUCCESS) {
 			fprintf(stderr, "Invalid multiplication on p-gamma\n");
-			return ret;
+			return err;
 		}
 
 		if ( pfunc(pa) != INFINITY ) {
+
+//			print_pa_num(pa);
+//			printf("|%g| = %g\n", from_canonic_to_double(pa), p_norm(pa));
+
 			ret += (double)pfunc(pa);
 			free_pa_num(qs[i]);
 			free_pa_num(pa);
@@ -854,7 +880,7 @@ double integral(double (*func)(pa_num *pnum), int g_min, int g_max)
 		spoint = (pa_num *)malloc(sizeof(pa_num));
 		if (spoint == NULL) {
 			fprintf(stderr, "Cannot alloc memory\n");
-			return ret;
+			return err;
 		}
 		err = __extend_number(spoint, pa, pa->g_min,
 							pa->g_max + 1);
@@ -1402,7 +1428,7 @@ PADIC_ERR print_tree(pa_tree *tree, char* file_name)
 
 	for (i = 1; i < tree->tree_sz; i++) {
 		bzero((void *)my_str, 64);
-		snprintf(my_str, 38, "n%03u -> n%03u;\nn%03u [label=\"%3.3f\"];\n",
+		snprintf(my_str, 42, "n%03u -> n%03u;\nn%03u [label=\"%3.7f\"];\n",
 				(i - 1) / P, i, i, tree->pa_nodes[i]->data);
 		if (write(fd, (void *)my_str, strlen(my_str)) < 0) {
 			fprintf(stderr, "Can't write to file %s\n", file_name);

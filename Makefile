@@ -9,6 +9,14 @@ SRC_DIR = ./src
 RES_DIR = ./res
 TESTS_DIR = ./tests
 
+##DEBUG ?= 1
+##ifeq (DEBUG, 1)
+##	CFLAGS =-g3 -gdwarf2 -DDEBUG
+##else
+##	CFLAGS=-DNDEBUG
+##endif
+
+
 .PHONY: directories
 all: directories test1 test2 test3 test4 test5 test6 test7 test8 test9
 directories: ${OBJ_DIR} ${BIN_DIR} ${SRC_DIR} ${TESTS_DIR} ${RES_DIR}

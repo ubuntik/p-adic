@@ -3,6 +3,7 @@
 
 // old values 0 and -5
 #define G_MAX (0)
+//#define G_MIN (-2)
 #define G_MIN (-5)
 
 static const int gmin = G_MIN;
@@ -19,7 +20,7 @@ double function(pa_num* pa)
 	}
 	ret = 1.0 / (p_norm(pa) * p_norm(pa) * p_norm(pa));
 	return (p_norm(pa) <= power(P, -gmax)) ? \
-			power(P, 3*gmax) : ret;
+			power(P, 3 * gmax) : ret;
 			// p, - - (alfa + 1) * gmax
 }
 
