@@ -7,9 +7,9 @@ static int gmin = G_MIN;
 static int gmax = G_MAX;
 
 // only for ALPHA = 2
-float function(pa_num* pa)
+double function(pa_num* pa)
 {
-	float ret = 0;
+	double ret = 0;
 	if (pa == NULL) {
 		fprintf(stderr, "Involid pointer\n");
 		return -1;
@@ -24,14 +24,14 @@ void do_for_n(pa_num *x, int gamma, pa_num *n)
 	int j = 0;
 	complex Cgnj_x = I;
 	complex Wgnj_x = I;
-	float (*pfunc)(pa_num *pnum);
+	double (*pfunc)(pa_num *pnum);
 	pfunc = function;
 
 	for (j = 1; j < P; j++) {
 		Cgnj_x = wavelet_integral_C_gnj_x(pfunc, x, n, gamma, j, gmin, gmax);
 		Wgnj_x = wavelet_integral(pfunc, n, gamma, j, gmin, gmax);
-		printf("%f\t%f\t%d\t%d\t%f\t%f\t%f\t%f\n", from_canonic_to_float(x),
-				from_canonic_to_float(n), gamma, j, crealf(Cgnj_x), cimagf(Cgnj_x),
+		printf("%f\t%f\t%d\t%d\t%f\t%f\t%f\t%f\n", from_canonic_to_double(x),
+				from_canonic_to_double(n), gamma, j, crealf(Cgnj_x), cimagf(Cgnj_x),
 				crealf(Wgnj_x), cimagf(Wgnj_x));
 	}
 }
@@ -65,8 +65,8 @@ void do_for_gamma(pa_num *x, int gamma)
 void do_for_x(pa_num *x)
 {
 	int gamma = 0;
-	float bx = 0;
-	float (*pfunc)(pa_num *pnum);
+	double bx = 0;
+	double (*pfunc)(pa_num *pnum);
 	pfunc = function;
 
 	// count B(x) integral

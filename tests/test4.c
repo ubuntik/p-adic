@@ -48,10 +48,10 @@ int main()
 	}
 
 	print_pa_num(pa);
-	printf("Number: %f\n", from_canonic_to_float(pa));
+	printf("Number: %g\n", from_canonic_to_double(pa));
 
 	res = character(pa);
-	printf("Character: %f + i%f\n", creal(res), cimag(res));
+	printf("Character: %g + i%g\n", creal(res), cimag(res));
 	free_pa_num(pa);
 
 	for (i = 0; i < P; i++) {
@@ -76,7 +76,7 @@ int main()
 			exit(err);
 		}
 		print_pa_num(x);
-		printf("x >> %f\n", from_canonic_to_float(x));
+		printf("x >> %g\n", from_canonic_to_double(x));
 
 		n = (pa_num *)malloc(sizeof(pa_num));
 		if (n == NULL) {
@@ -94,7 +94,7 @@ int main()
 			exit(err);
 		}
 		print_pa_num(n);
-		printf("n >> %f\n", from_canonic_to_float(n));
+		printf("n >> %g\n", from_canonic_to_double(n));
 
 		gamma = 0;
 
@@ -103,7 +103,7 @@ int main()
 
 		for (j = 1; j < P; j++) {
 			res = wavelet(x, n, gamma, j);
-			printf("(j = %d) >> %f + i%f\n", j, creal(res), cimag(res));
+			printf("(j = %d) >> %g + i%g\n", j, creal(res), cimag(res));
 		}
 		printf("\n");
 		free_pa_num(x);

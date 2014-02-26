@@ -36,7 +36,7 @@ int main()
 
 	printf("Take first p-adic number:\n");
 	print_pa_num(pn1);
-	printf("pa1 = %f\n\n", from_canonic_to_float(pn1));
+	printf("pa1 = %g\n\n", from_canonic_to_double(pn1));
 
 	pn2 = (pa_num *)malloc(sizeof(pa_num));
 	if (pn2 == NULL) {
@@ -61,7 +61,7 @@ int main()
 
 	printf("Take second p-adic number:\n");
 	print_pa_num(pn2);
-	printf("pa2 = %f\n\n", from_canonic_to_float(pn2));
+	printf("pa2 = %g\n\n", from_canonic_to_double(pn2));
 
 	printf("Check their subtraction and addition:\n");
 
@@ -77,7 +77,7 @@ int main()
 	}
 	printf("pa1 - pa2 = {");
 	print_pa_num(psub);
-	printf("pa1 - pa2 = %f\n\n", from_canonic_to_float(psub));
+	printf("pa1 - pa2 = %g\n\n", from_canonic_to_double(psub));
 	free_pa_num(psub);
 
 	padd = (pa_num *)malloc(sizeof(pa_num));
@@ -92,7 +92,7 @@ int main()
 	}
 	printf("pa1 + pa2 = {");
 	print_pa_num(padd);
-	printf("pa1 + pa2 = %f\n\n", from_canonic_to_float(padd));
+	printf("pa1 + pa2 = %g\n\n", from_canonic_to_double(padd));
 	free_pa_num(padd);
 
 	psub = (pa_num *)malloc(sizeof(pa_num));
@@ -107,7 +107,7 @@ int main()
 	}
 	printf("pa2 - pa1 = {");
 	print_pa_num(psub);
-	printf("pa2 - pa1 = %f\n\n", from_canonic_to_float(psub));
+	printf("pa2 - pa1 = %g\n\n", from_canonic_to_double(psub));
 	free_pa_num(psub);
 
 	free_pa_num(pn1);
@@ -137,7 +137,7 @@ int main()
 
 	printf("Take first p-adic number (negative):\n");
 	print_pa_num(pn1);
-	printf("pa1 = %f\n\n", from_canonic_to_float(pn1));
+	printf("pa1 = %g\n\n", from_canonic_to_double(pn1));
 
 	pn2 = (pa_num *)malloc(sizeof(pa_num));
 	if (pn2 == NULL) {
@@ -162,7 +162,7 @@ int main()
 
 	printf("Take second p-adic number:\n");
 	print_pa_num(pn2);
-	printf("pa2 = %f\n\n", from_canonic_to_float(pn2));
+	printf("pa2 = %g\n\n", from_canonic_to_double(pn2));
 
 	printf("Check their subtraction and addition:\n");
 
@@ -178,7 +178,7 @@ int main()
 	}
 	printf("pa1 - pa2 = {");
 	print_pa_num(psub);
-	printf("pa1 - pa2 = %f\n\n", from_canonic_to_float(psub));
+	printf("pa1 - pa2 = %g\n\n", from_canonic_to_double(psub));
 	free_pa_num(psub);
 
 	padd = (pa_num *)malloc(sizeof(pa_num));
@@ -193,7 +193,7 @@ int main()
 	}
 	printf("pa1 + pa2 = {");
 	print_pa_num(padd);
-	printf("pa1 - pa2 = %f\n\n", from_canonic_to_float(padd));
+	printf("pa1 - pa2 = %g\n\n", from_canonic_to_double(padd));
 	free_pa_num(padd);
 
 	psub = (pa_num *)malloc(sizeof(pa_num));
@@ -208,7 +208,7 @@ int main()
 	}
 	printf("pa2 - pa1 = {");
 	print_pa_num(psub);
-	printf("pa2 - pa1 = %f\n\n", from_canonic_to_float(psub));
+	printf("pa2 - pa1 = %g\n\n", from_canonic_to_double(psub));
 	free_pa_num(psub);
 
 	padd = (pa_num *)malloc(sizeof(pa_num));
@@ -223,7 +223,7 @@ int main()
 	}
 	printf("pa2 + pa1 = {");
 	print_pa_num(padd);
-	printf("pa2 + pa1 = %f\n\n", from_canonic_to_float(padd));
+	printf("pa2 + pa1 = %g\n\n", from_canonic_to_double(padd));
 	free_pa_num(padd);
 
 	free_pa_num(pn1);
@@ -252,7 +252,7 @@ int main()
 
 	printf("Take the p-adic number:\n");
 	print_pa_num(pn1);
-	printf("pa1 = %f\n\n", from_canonic_to_float(pn1));
+	printf("pa1 = %g\n\n", from_canonic_to_double(pn1));
 
 	printf("Check multiplication of p-adic number and p^gamma:\n");
 	printf("pa1 * p^2 = {");
@@ -268,7 +268,7 @@ int main()
 		exit(err);
 	}
 	print_pa_num(res);
-	printf("pa1 * p^2 = %f\n\n", from_canonic_to_float(res));
+	printf("pa1 * p^2 = %g\n\n", from_canonic_to_double(res));
 
 	free_pa_num(res);
 	free_pa_num(pn1);
@@ -292,7 +292,7 @@ int main()
 	}
 	printf("Take an abstract p-adic number:\n");
 	print_pa_num(pn1);
-	printf("x >> %f\n\n", from_canonic_to_float(pn1));
+	printf("x >> %g\n\n", from_canonic_to_double(pn1));
 
 	pn2 = (pa_num *)malloc(sizeof(pa_num));
 	if (pn2 == NULL) {
@@ -311,7 +311,7 @@ int main()
 	}
 	printf("Take a representative:\n");
 	print_pa_num(pn2);
-	printf("n >> %f\n\n", from_canonic_to_float(pn2));
+	printf("n >> %g\n\n", from_canonic_to_double(pn2));
 
 	printf("Checking indicator for different gamma = [-2; 1]\n");
 	for (i = -2; i < 2; i++) {
@@ -349,7 +349,7 @@ int main()
 
 	printf("Take an abstract p-adic number:\n");
 	print_pa_num(pn1);
-	printf("x >> %f\n\n", from_canonic_to_float(pn1));
+	printf("x >> %g\n\n", from_canonic_to_double(pn1));
 
 	pn2 = (pa_num *)malloc(sizeof(pa_num));
 	if (pn2 == NULL) {
@@ -368,7 +368,7 @@ int main()
 	}
 	printf("Take a representative:\n");
 	print_pa_num(pn2);
-	printf("n >> %f\n\n", from_canonic_to_float(pn2));
+	printf("n >> %g\n\n", from_canonic_to_double(pn2));
 
 	printf("Checking indicator for different gamma = [0; 5]\n");
 	for (i = 0; i < 5; i++) {
