@@ -61,17 +61,19 @@ struct pa_tree {
 
 typedef struct pa_tree pa_tree;
 
+/* basic functions */
+
+double power(double base, double exponent);
+
 PADIC_ERR init_pa_num(pa_num *pa, int gmin, int gmax);
 
 void free_pa_num(pa_num *pa);
 
-double power(double base, double exponent);
-
-long qspace_sz(int g_min, int g_max);
-
 int get_x_by_gamma(pa_num* pa, int gamma);
 
 PADIC_ERR set_x_by_gamma(pa_num* pa, int gamma, int x);
+
+long qspace_sz(int g_min, int g_max);
 
 PADIC_ERR gen_quotient_space(pa_num **qs, int g_min, int g_max);
 

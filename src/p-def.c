@@ -7,8 +7,6 @@
 
 #include <p-def.h>
 
-// len = g_max - g_min + 1
-
 double power(double base, double exponent)
 {
 	double half_pow = 0.0, int_part = 0.0;
@@ -31,17 +29,6 @@ double power(double base, double exponent)
 		return base * power(base, exponent - 1);
 }
 
-long qspace_sz(int g_min, int g_max)
-{
-	long ret = 1;
-	int i = 0;
-	int xsz = g_max - g_min;
-
-	for (i = 0; i < xsz; i++)
-		ret = ret * P;
-	return ret;
-}
-
 PADIC_ERR init_pa_num(pa_num* pa, int g_min, int g_max)
 {
 	if (pa == NULL) {
@@ -55,6 +42,10 @@ PADIC_ERR init_pa_num(pa_num* pa, int g_min, int g_max)
 		fflush(stderr);
 		return EGAMMAOUT;
 	}
+
+	if (LOG_LEVEL == 3)
+		fprintf(stdout, "init_pa_num: g_min = %d, g_max = %d\n", g_min, g_max);
+
 	pa->g_min = g_min;
 	pa->g_max = g_max;
 	pa->sign = POS;
@@ -76,15 +67,30 @@ void free_pa_num(pa_num* pa)
 
 int get_x_by_gamma(pa_num* pa, int gamma)
 {
+	int res = INT_MAX;
+
 	if (pa == NULL) {
 		fprintf(stderr, "Invalid pointer\n");
 		return -1;
 	}
+
+	if (LOG_LEVEL == 3) {
+		fprintf(stdout, "get_x_by_gamma: gamma = %d\n", gamma);
+		fprintf(stdout, "get_x_by_gamma: ");
+		print_pa_num(pa);
+	}
+
 	if (gamma < pa->g_min)
-		return 0;
+		res = 0;
 	else if (gamma > pa->g_max)
-		return 0;
-	return pa->x[gamma - pa->g_min];
+		res = 0;
+	else
+		res = pa->x[gamma - pa->g_min];
+
+	if (LOG_LEVEL == 3)
+		fprintf(stdout, "get_x_by_gamma: return = %d\n", res);
+
+	return res;
 }
 
 PADIC_ERR set_x_by_gamma(pa_num* pa, int gamma, int x)
@@ -104,8 +110,37 @@ PADIC_ERR set_x_by_gamma(pa_num* pa, int gamma, int x)
 		fprintf(stderr, "Invalid value of coefficient\n");
 		return EINVCOEFF;
 	}
+
+	if (LOG_LEVEL == 3) {
+		fprintf(stdout, "set_x_by_gamma: gamma= %d, coeff = %d\n", gamma, x);
+		fprintf(stdout, "set_x_by_gamma: ");
+		print_pa_num(pa);
+	}
+
 	pa->x[gamma - pa->g_min] = x;
+
+	if (LOG_LEVEL == 3) {
+		fprintf(stdout, "set_x_by_gamma: ");
+		print_pa_num(pa);
+	}
+
 	return ESUCCESS;
+}
+
+long qspace_sz(int g_min, int g_max)
+{
+	long ret = 1;
+	int i = 0;
+	int xsz = g_max - g_min;
+
+	for (i = 0; i < xsz; i++)
+		ret = ret * P;
+
+	if (LOG_LEVEL == 3)
+		fprintf(stdout, "qspace_sz: g_min= %d, g_max = %d, qsize = %ld\n",
+					g_min, g_max, ret);
+
+	return ret;
 }
 
 PADIC_ERR gen_quotient_space(pa_num **qs, int g_min, int g_max)
@@ -159,9 +194,6 @@ PADIC_ERR gen_quotient_space(pa_num **qs, int g_min, int g_max)
 	return ESUCCESS;
 }
 
-// TODO: # 3.. 6:+: 1, 2, 1, 0
-// according to flag: PA_LONG_PRINT
-
 PADIC_ERR p_gamma_pa_num(pa_num *res, pa_num *pa, int gamma)
 {
 	int i = 0;
@@ -170,6 +202,12 @@ PADIC_ERR p_gamma_pa_num(pa_num *res, pa_num *pa, int gamma)
 	if (res == NULL || pa == NULL) {
 		fprintf(stderr, "Invalid pointer\n");
 		return EINVPNTR;
+	}
+
+	if (LOG_LEVEL == 3) {
+		fprintf(stdout, "p_gamma_pa_num: gamma= %d\n", gamma);
+		fprintf(stdout, "p_gamma_pa_num: ");
+		print_pa_num(pa);
 	}
 
 	err = init_pa_num(res, pa->g_min + gamma, pa->g_max + gamma);
@@ -186,6 +224,12 @@ PADIC_ERR p_gamma_pa_num(pa_num *res, pa_num *pa, int gamma)
 			return err;
 		}
 	}
+
+	if (LOG_LEVEL == 3) {
+		fprintf(stdout, "p_gamma_pa_num: ");
+		print_pa_num(res);
+	}
+
 	return ESUCCESS;
 }
 

@@ -52,24 +52,37 @@ PADIC_ERR __extend_number(pa_num *ext_pa, pa_num *pa, int g_min, int g_max)
 
 int arith_compare(pa_num *pa1, pa_num *pa2)
 {
-	int max =0 , min = 0, i = 0;
+	int max =0 , min = 0, i = 0, ret = INT_MAX;
 	if (pa1 == NULL || pa2 == NULL) {
 		fprintf(stderr, "Invalid pointer\n");
-		return EINVPNTR;
+		return INT_MAX;
 	}
 
 	min = (pa1->g_min < pa2->g_min) ? pa1->g_min : pa2->g_min;
 	max = (pa1->g_max > pa2->g_max) ? pa1->g_max : pa2->g_max;
 
+	ret = 0;
 	for (i = max; i >= min; i--) {
 		if (get_x_by_gamma(pa1, i) > get_x_by_gamma(pa2, i))
-			return 1;
+			ret = 1;
 		else if (get_x_by_gamma(pa1, i) < get_x_by_gamma(pa2, i))
-			return -1;
+			ret = -1;
 		else
 			continue;
 	}
-	return 0;
+
+	if (LOG_LEVEL >= 2) {
+		char *s = "=";
+		if (ret != 0)
+			s = (ret > 0) ? ">" : "<";
+		fprintf(stdout, "arith_compare: p1 %s p2\n", s);
+		fprintf(stdout, "arith_compare: ");
+		print_pa_num(pa1);
+		fprintf(stdout, "arith_compare: ");
+		print_pa_num(pa2);
+	}
+
+	return ret;
 }
 
 int reverse_sign(int sign)
@@ -180,6 +193,13 @@ PADIC_ERR add(pa_num *res, pa_num *pa1, pa_num *pa2)
 		return EINVPNTR;
 	}
 
+	if (LOG_LEVEL >= 2) {
+		fprintf(stdout, "add: ");
+		print_pa_num(pa1);
+		fprintf(stdout, "add: ");
+		print_pa_num(pa2);
+	}
+
 	cmp = arith_compare(pa1, pa2);
 
 	if ((cmp == 0) && (pa1->sign != pa2->sign)) {
@@ -215,8 +235,8 @@ PADIC_ERR add(pa_num *res, pa_num *pa1, pa_num *pa2)
 			return err;
 		}
 	} else {
-		res->sign = (cmp > 0) ? pa1->sign : reverse_sign(pa1->sign);
-		err = (cmp > 0) ? __dummy_sub(ext_pa, pa1, pa2) : \
+		res->sign = (cmp < 0) ? pa1->sign : reverse_sign(pa1->sign);
+		err = (cmp < 0) ? __dummy_sub(ext_pa, pa1, pa2) : \
 						__dummy_sub(ext_pa, pa2, pa1);
 		if (err != ESUCCESS) {
 			fprintf(stderr, "Invalid dummy sub\n");
@@ -229,6 +249,14 @@ PADIC_ERR add(pa_num *res, pa_num *pa1, pa_num *pa2)
 		return err;
 	}
 	free_pa_num(ext_pa);
+
+	if (LOG_LEVEL >= 2) {
+		fprintf(stdout, "add: %g + %g = %g\n",
+			padic2double(pa1), padic2double(pa2), padic2double(res));
+		fprintf(stdout, "add: ");
+		print_pa_num(res);
+	}
+
 	return ESUCCESS;
 }
 
@@ -244,6 +272,13 @@ PADIC_ERR sub(pa_num *res, pa_num *pa1, pa_num *pa2)
 	if (res == NULL || pa1 == NULL || pa2 == NULL) {
 		fprintf(stderr, "Invalid pointer\n");
 		return EINVPNTR;
+	}
+
+	if (LOG_LEVEL >= 2) {
+		fprintf(stdout, "sub: ");
+		print_pa_num(pa1);
+		fprintf(stdout, "sub: ");
+		print_pa_num(pa2);
 	}
 
 	cmp = arith_compare(pa1, pa2);
@@ -281,8 +316,8 @@ PADIC_ERR sub(pa_num *res, pa_num *pa1, pa_num *pa2)
 			return err;
 		}
 	} else {
-		ext_pa->sign = (cmp > 0) ? pa1->sign : reverse_sign(pa1->sign);
-		err = (cmp > 0) ? __dummy_sub(ext_pa, pa1, pa2) : \
+		ext_pa->sign = (cmp < 0) ? pa1->sign : reverse_sign(pa1->sign);
+		err = (cmp < 0) ? __dummy_sub(ext_pa, pa1, pa2) : \
 						__dummy_sub(ext_pa, pa2, pa1);
 		if (err != ESUCCESS) {
 			fprintf(stderr, "Invalid dummy sub\n");
@@ -295,6 +330,14 @@ PADIC_ERR sub(pa_num *res, pa_num *pa1, pa_num *pa2)
 		return err;
 	}
 	free_pa_num(ext_pa);
+
+	if (LOG_LEVEL >= 2) {
+		fprintf(stdout, "sub: %g - %g = %g\n",
+			padic2double(pa1), padic2double(pa2), padic2double(res));
+		fprintf(stdout, "sub: ");
+		print_pa_num(res);
+	}
+
 	return ESUCCESS;
 }
 
@@ -330,6 +373,16 @@ PADIC_ERR get_fractional_part(pa_num *res, pa_num *pa)
 			return err;
 		}
 	}
+
+	if (LOG_LEVEL >= 2) {
+		fprintf(stdout, "get_fractional_part: {%g} = %g\n",
+			padic2double(pa), padic2double(res));
+		fprintf(stdout, "get_fractional_part: ");
+		print_pa_num(pa);
+		fprintf(stdout, "get_fractional_part: ");
+		print_pa_num(res);
+	}
+
 	return ESUCCESS;
 }
 
@@ -359,6 +412,15 @@ PADIC_ERR jmult(pa_num *res, pa_num *pa, int j)
 		(tmp >= P) ? set_x_by_gamma(res, i, tmp - P) : \
 			set_x_by_gamma(res, i, tmp);
 		in_mind = (tmp >= P) ? 1 : 0;
+	}
+
+	if (LOG_LEVEL >= 2) {
+		fprintf(stdout, "jmult: %d*%g = %g\n",
+			j, padic2double(pa), padic2double(res));
+		fprintf(stdout, "jmult: ");
+		print_pa_num(pa);
+		fprintf(stdout, "jmult: ");
+		print_pa_num(res);
 	}
 
 	return ESUCCESS;

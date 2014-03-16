@@ -72,22 +72,42 @@ double p_norm(pa_num *pa)
 	}
 
 	/* it means, we check all coeffs in an array and all of them are null*/
-	if (res == INT_MAX)
+	if (res == INT_MAX) {
+		if (LOG_LEVEL >= 1) {
+			fprintf(stdout, "p_norm: |0| = 0\n");
+			fprintf(stdout, "p_norm: ");
+			print_pa_num(pa);
+		}
 		return (double)0;
+	}
 
+	if (LOG_LEVEL >= 1) {
+		fprintf(stdout, "p_norm: P^%d = %g\n", -res, power((double)P, -res));
+		fprintf(stdout, "p_norm: ");
+                print_pa_num(pa);
+        }
 	return power((double)P, -res);
 }
 
 int indicator(pa_num *x, pa_num *n, int gamma)
 {
 	pa_num *mult = NULL, *subtr = NULL;
-	int norm = 0;
+	double norm = 0;
 	PADIC_ERR err = ESUCCESS;
 
 	if (x == NULL || n == NULL) {
 		fprintf(stderr, "Invalid pointer\n");
 		return -1;
 	}
+
+	if (LOG_LEVEL >= 1) {
+		fprintf(stdout, "p_norm: x = %g, n = %g, gamma = %d\n",
+			padic2double(x), padic2double(n), gamma);
+		fprintf(stdout, "p_norm: ");
+		print_pa_num(x);
+		fprintf(stdout, "p_norm: ");
+		print_pa_num(n);
+        }
 
 	mult = (pa_num *)malloc(sizeof(pa_num));
 	if (mult == NULL) {
@@ -116,9 +136,17 @@ int indicator(pa_num *x, pa_num *n, int gamma)
 	 * |kern| <= 1 => gamma >= 0
 	 */
 
+	if (LOG_LEVEL >= 1) {
+		fprintf(stdout, "indicator: |p^gamma*x - n| <= 1 => indicator = 1\n");
+		fprintf(stdout, "indicator: |%g| = %g => ind = %d\n",
+				padic2double(subtr), norm, (norm <= 1) ? 1 : 0);
+		fprintf(stdout, "indicator: ");
+		print_pa_num(subtr);
+        }
+
 	free_pa_num(subtr);
 	free_pa_num(mult);
-	return (norm > 1) ? 0 : 1;
+	return (norm <= 1) ? 1 : 0;
 }
 
 complex character(pa_num *pa)
@@ -146,12 +174,18 @@ complex character(pa_num *pa)
 
 	ret = cexpf(2 * PI * I *
 			padic2double(fnum));
+
+	if (LOG_LEVEL >= 1) {
+		fprintf(stdout, "character: char(%g) = %g + i*%g\n",
+			padic2double(pa), creal(ret), cimag(ret));
+		fprintf(stdout, "character: ");
+		print_pa_num(pa);
+        }
 	free_pa_num(fnum);
 	return ret;
 }
 
 
-// * gamma / 2
 complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 {
 	pa_num *kern = NULL, *jkern = NULL;
@@ -177,11 +211,6 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 		return ret;
 	}
 
-
-//	print_pa_num(x);
-//	fprintf(stdout, "x-y = %g\n", padic2double(x));
-
-
 	err = p_gamma_pa_num(mult, x, gamma);
 	if (err != ESUCCESS) {
 		fprintf(stderr, "Invalid multiplication on p-gamma\n");
@@ -192,11 +221,6 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 		fprintf(stderr, "Invalid subtraction\n");
 		return ret;
 	}
-
-
-//	print_pa_num(subtr);
-//	fprintf(stdout, "p^g(x-y) - n = %g\n", padic2double(subtr));
-
 
 	err = p_gamma_pa_num(kern, subtr, -1);
 	if (err != ESUCCESS) {
@@ -209,14 +233,7 @@ complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
 		return ret;
 	}
 
-//	print_pa_num(jkern);
-//	fprintf(stdout, "char kern = %g\n", padic2double(jkern));
-
-//	if (p_norm(subtr) <= 1)
-//		fprintf(stdout, "%g >>> DONE!!!\n", padic2double(subtr));
-
 	if (indicator(x, n, gamma)) {
-//		ret = creal(character(jkern)) + I * cimag(character(jkern));
 		ret = creal(character(jkern)) * power(P, -(double)gamma / 2) +
 			I * cimag(character(jkern)) * power(P, -(double)gamma / 2);
 	} else

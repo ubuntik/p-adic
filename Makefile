@@ -1,7 +1,8 @@
 MKDIR_P = mkdir -p
 CC = gcc
-CFLAGS = -pg -g -Wall -I${SRC_DIR}
 LIBS = -lm
+LOGLVL = 0
+CFLAGS = -pg -g -Wall -I${SRC_DIR} -DLOG_LEVEL=${LOGLVL}
 
 OBJ_DIR = ./obj
 BIN_DIR = ./bin
@@ -12,14 +13,6 @@ TESTS_DIR = ./tests
 P_DEF_O = ${OBJ_DIR}/p-def.o
 P_ARITHM_O = ${OBJ_DIR}/p-def.o ${OBJ_DIR}/p-arithm.o
 P_ANALYSIS_O = ${OBJ_DIR}/p-def.o ${OBJ_DIR}/p-arithm.o ${OBJ_DIR}/p-analysis.o
-
-##DEBUG ?= 1
-##ifeq (DEBUG, 1)
-##	CFLAGS =-g3 -gdwarf2 -DDEBUG
-##else
-##	CFLAGS=-DNDEBUG
-##endif
-
 
 .PHONY: directories
 all: directories test1 test2 test3 test4 test5 test6 test7
