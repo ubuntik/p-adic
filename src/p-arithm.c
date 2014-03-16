@@ -5,51 +5,6 @@
 
 #include <p-arithm.h>
 
-PADIC_ERR __extend_number(pa_num *ext_pa, pa_num *pa, int g_min, int g_max)
-{
-	PADIC_ERR err = ESUCCESS;
-	int i = 0;
-	int xtmp = 0;
-
-	if (pa == NULL || ext_pa == NULL) {
-		fprintf(stderr, "Invalid pointer\n");
-		return EINVPNTR;
-	}
-	if (g_min > pa->g_min) {
-		fprintf(stderr, "Invalid Value g_min: %d\n", g_min);
-		fprintf(stderr, "g_min should be less than %d\n", pa->g_min);
-		fflush(stderr);
-		return EGAMMAOUT;
-	}
-	if (g_max < pa->g_max) {
-		fprintf(stderr, "Invalid Value g_max: %d\n", g_max);
-		fprintf(stderr, "g_max should be greater than %d\n", pa->g_max);
-		fflush(stderr);
-		return EGAMMAOUT;
-	}
-
-	err = init_pa_num(ext_pa, g_min, g_max);
-	if (err != ESUCCESS) {
-		fprintf(stderr, "Involid init of number\n");
-		exit(err);
-	}
-
-	for (i = g_min; i <= g_max; i++) {
-		xtmp = get_x_by_gamma(pa, i);
-		if (xtmp < 0 || xtmp >= P) {
-			fprintf(stderr, "Invalid value of coefficient\n");
-			return EINVCOEFF;
-		}
-		err = set_x_by_gamma(ext_pa, i, xtmp);
-		if (err != ESUCCESS) {
-			fprintf(stderr, "Cannot set value of coefficient\n");
-			return err;
-		}
-	}
-
-	return ESUCCESS;
-}
-
 int arith_compare(pa_num *pa1, pa_num *pa2)
 {
 	int max =0 , min = 0, i = 0, ret = INT_MAX;
@@ -259,8 +214,6 @@ PADIC_ERR add(pa_num *res, pa_num *pa1, pa_num *pa2)
 
 	return ESUCCESS;
 }
-
-// TODO: for DEBUG -- add args and res print for add() and sub()
 
 PADIC_ERR sub(pa_num *res, pa_num *pa1, pa_num *pa2)
 {

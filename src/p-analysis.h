@@ -23,11 +23,3 @@ double integral(double (*func)(pa_num* pnum), int g_min, int g_max);
 complex double wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma,
 		int j, int g_min, int g_max);
 
-double integral_B_x(double (*func)(pa_num *pnum), pa_num *x, int g_min, int g_max);
-
-complex double wavelet_integral_C_gnj_x(double (*func)(pa_num *pnum), pa_num *x,
-		pa_num *n, int gamma, int j, int g_min, int g_max);
-
-complex double wavelet_integral_Agnj(double (*func)(pa_num *pnum), pa_num *n, int gamma,
-		int j, int g_min, int g_max);
-
