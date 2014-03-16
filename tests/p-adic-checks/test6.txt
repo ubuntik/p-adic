@@ -1,5 +1,9 @@
 Test#6: Wavelet integrals
-Parameters: g_max = 3, g_min = 0
+Parameters: g_max = 4, g_min = -5
+>>>>> Vladimirov's operator: 546.75
+
+>>>>> Integral dx: 243
+
 Current gamma: 0
->>>>> Result: -0.333333 + i * -0.000000
+>>>>> Result2: -0.333333 + i * 0.000000
 

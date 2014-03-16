@@ -1,3 +1,0 @@
-Test#8: Draw tree
-p = 3; Gamma_min = -2; Gamma_max = 0
-Tree size: 13

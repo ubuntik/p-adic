@@ -4,29 +4,29 @@ Gamma = 1
 Number of balls = 1
 Number 0:
 Canonical view coefficients:
-x[0] = 0	
+# 0..0:+: 0 
 User friendly view:
-0.000000
+0
 ===============================
 ###############################
 Gamma = 2
 Number of balls = 3
 Number 0:
 Canonical view coefficients:
-x[0] = 0	x[1] = 0	
+# 0..1:+: 0 0 
 User friendly view:
-0.000000
+0
 ===============================
 Number 1:
 Canonical view coefficients:
-x[0] = 0	x[1] = 1	
+# 0..1:+: 0 1 
 User friendly view:
-3.000000
+3
 ===============================
 Number 2:
 Canonical view coefficients:
-x[0] = 0	x[1] = 2	
+# 0..1:+: 0 2 
 User friendly view:
-6.000000
+6
 ===============================
 ###############################

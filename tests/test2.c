@@ -1,8 +1,8 @@
-#include "../src/p-adic.h"
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include <p-def.h>
 
 #define G_MAX (2)
 #define G_MIN (1)
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 			printf("Canonical view coefficients:\n");
 			print_pa_num(pgnum);
 			printf("User friendly view:\n");
-			printf("%g\n", from_canonic_to_double(pgnum));
+			printf("%g\n", padic2double(pgnum));
 			printf("===============================\n");
 			free_pa_num(pgnum);
 			free_pa_num(qs[i]);

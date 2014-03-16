@@ -1,4 +1,8 @@
-#include "../src/p-adic.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include <p-analysis.h>
 
 int gmin = -5;
 int gmax = 4;

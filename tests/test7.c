@@ -1,128 +1,47 @@
-#include "../src/p-adic.h"
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-#define G_MAX (0)
-#define G_MIN (-3)
+#include <p-def.h>
 
-static int gmin = G_MIN;
-static int gmax = G_MAX;
+#define G_MAX (-2)
+#define G_MIN (-5)
+#define XSZ (G_MAX - G_MIN)
 
-// only for ALPHA = 2
-double function(pa_num* pa)
+int main(int argc, char **argv)
 {
-	double ret = 0;
-	if (pa == NULL) {
-		fprintf(stderr, "Involid pointer\n");
-		return -1;
-	}
-	ret = 1.0 / (p_norm(pa) * p_norm(pa));
-	return (p_norm(pa) < power(P, -G_MAX)) ? \
-			power(P, -G_MAX) : ret;
-}
-
-void do_for_n(pa_num *x, int gamma, pa_num *n)
-{
-	int j = 0;
-	complex Cgnj_x = I;
-	complex Wgnj_x = I;
-	double (*pfunc)(pa_num *pnum);
-	pfunc = function;
-
-	for (j = 1; j < P; j++) {
-		Cgnj_x = wavelet_integral_C_gnj_x(pfunc, x, n, gamma, j, gmin, gmax);
-		Wgnj_x = wavelet_integral(pfunc, n, gamma, j, gmin, gmax);
-		printf("%f\t%f\t%d\t%d\t%f\t%f\t%f\t%f\n", from_canonic_to_double(x),
-				from_canonic_to_double(n), gamma, j, crealf(Cgnj_x), cimagf(Cgnj_x),
-				crealf(Wgnj_x), cimagf(Wgnj_x));
-	}
-}
-
-void do_for_gamma(pa_num *x, int gamma)
-{
-	int i = 0;
-	PADIC_ERR err = ESUCCESS;
-	int ns_sz = 0;
-	pa_num **ns = NULL;
-
-	ns_sz = (size_t)qspace_sz(gamma, gmax);
-	ns = (pa_num **)malloc(ns_sz * sizeof(pa_num*));
-	if (ns == NULL) {
-		fprintf(stderr, "Cannot alloc memory\n");
-		exit(-1);
-	}
-	err = gen_quotient_space(ns, gamma, gmax);
-	if (err != ESUCCESS) {
-		fprintf(stderr, "Involid generating qspace\n");
-		exit(err);
-	}
-
-	for (i = 0; i < ns_sz; i++) {
-		do_for_n(x, gamma, ns[i]);
-		free_pa_num(ns[i]);
-	}
-	free(ns);
-}
-
-void do_for_x(pa_num *x)
-{
-	int gamma = 0;
-	double bx = 0;
-	double (*pfunc)(pa_num *pnum);
-	pfunc = function;
-
-	// count B(x) integral
-	bx = integral_B_x(pfunc, x, gmin, gmax);
-//	printf("B(x) = %f\n", bx);
-
-	// count Cgnj(x) integral
-	for (gamma = gmin; gamma < gmax; gamma++) {
-		do_for_gamma(x, gamma);
-	}
-}
-
-int main()
-{
-	int xs_sz = 0, i = 0;
-	pa_num *x = NULL;
-	pa_num **xs = NULL;
+	pa_tree* tree = NULL;
 	PADIC_ERR err = ESUCCESS;
 
-//	printf("Test#6: Wavelet integrals\n");
-//	printf("Parameters: g_max = %d, g_min = %d\n", gmax, gmin);
+	printf("Test#8: Draw tree\n");
+	printf("p = %d; Gamma_min = %d; Gamma_max = %d\n", P, G_MIN, G_MAX);
 
-	// x is in B_gamma_max
-	xs_sz = (size_t)qspace_sz(gmin, gmax);
-//	printf("x space sz = %d\n", xs_sz);
-	printf("x\tn\tgamma\tj\tCgnj(x)\n");
-
-	xs = (pa_num **)malloc(xs_sz * sizeof(pa_num*));
-	if (xs == NULL) {
+	tree = (pa_tree *)malloc(sizeof(pa_tree));
+	if (tree == NULL) {
 		fprintf(stderr, "Cannot alloc memory\n");
-		exit(-1);
+		return EINVPNTR;
 	}
-	err = gen_quotient_space(xs, gmin, gmax);
+
+	err = get_pa_tree(tree, G_MIN, G_MAX);
 	if (err != ESUCCESS) {
-		fprintf(stderr, "Involid generating quotient space\n");
-		exit(err);
+		fprintf(stderr, "Involid generating tree\n");
+		return err;
 	}
 
-	for (i = 0; i < xs_sz; i++) {
-		x = (pa_num *)malloc(sizeof(pa_num));
-		if (x == NULL) {
-			fprintf(stderr, "Cannot alloc memory\n");
-			exit(-1);
-		}
-		err = p_gamma_pa_num(x, xs[i], gmax);
-		if (err != ESUCCESS) {
-			fprintf(stderr, "Involid mult p gamma\n");
-			exit(err);
-		}
+	printf("Tree size: %d\n", tree->tree_sz);
 
-		do_for_x(x);
-
-		free_pa_num(x);
-		free_pa_num(xs[i]);
+	err = print_tree(tree, "./trees/tree.gv");
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Failed to print tree\n");
+		return err;
 	}
-	free(xs);
+
+	free_tree(tree);
+
 	return 0;
 }
 

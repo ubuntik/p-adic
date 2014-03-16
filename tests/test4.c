@@ -1,4 +1,9 @@
-#include "../src/p-adic.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include <p-analysis.h>
+
 #define G_MAX 1
 #define G_MIN (-2)
 
@@ -48,7 +53,7 @@ int main()
 	}
 
 	print_pa_num(pa);
-	printf("Number: %g\n", from_canonic_to_double(pa));
+	printf("Number: %g\n", padic2double(pa));
 
 	res = character(pa);
 	printf("Character: %g + i%g\n", creal(res), cimag(res));
@@ -76,7 +81,7 @@ int main()
 			exit(err);
 		}
 		print_pa_num(x);
-		printf("x >> %g\n", from_canonic_to_double(x));
+		printf("x >> %g\n", padic2double(x));
 
 		n = (pa_num *)malloc(sizeof(pa_num));
 		if (n == NULL) {
@@ -94,7 +99,7 @@ int main()
 			exit(err);
 		}
 		print_pa_num(n);
-		printf("n >> %g\n", from_canonic_to_double(n));
+		printf("n >> %g\n", padic2double(n));
 
 		gamma = 0;
 

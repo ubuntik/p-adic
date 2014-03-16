@@ -1,4 +1,8 @@
-#include "../src/p-adic.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include <p-analysis.h>
 
 double wrapped_indicator(pa_num *pa)
 {
@@ -87,15 +91,6 @@ int main()
 		res = integral(pfunc, gmin, gmax);
 		printf("gmin = %d gmax = %d result = %f\n", gmin, gmax, res);
 	}
-
-	printf("\n>>> integral with special point <<<\n");
-	pfunc = sp_point;
-
-	gmin = -4;
-	gmax = 0;
-	res1 = integral(pfunc, gmin, gmax);
-
-	printf("Zp: %f\n", res1);
 
 	return 0;
 }

@@ -1,4 +1,9 @@
-#include "../src/p-adic.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include <p-def.h>
+
 #define G_MAX 1
 #define G_MIN (-1)
 
@@ -27,7 +32,7 @@ int main()
 		printf("Number %d:\n", i);
 		printf("Canonical view coefficients:\n");
 		print_pa_num(qs[i]);
-		printf("%g\n", from_canonic_to_double(qs[i]));
+		printf("%g\n", padic2double(qs[i]));
 		printf("===============================\n");
 		free_pa_num(qs[i]);
 	}

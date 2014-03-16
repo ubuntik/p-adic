@@ -2,46 +2,46 @@ Test#1: Generate factor-space
 p = 3; Gamma_min = -1; Gamma_max = 1
 Number 0:
 Canonical view coefficients:
-x[-3] = 0	x[-2] = 0	x[-1] = 0	
-0.000000
+# -3..-1:+: 0 0 0 
+0
 ===============================
 Number 1:
 Canonical view coefficients:
-x[-3] = 0	x[-2] = 0	x[-1] = 1	
+# -3..-1:+: 0 0 1 
 0.333333
 ===============================
 Number 2:
 Canonical view coefficients:
-x[-3] = 0	x[-2] = 0	x[-1] = 2	
+# -3..-1:+: 0 0 2 
 0.666667
 ===============================
 Number 3:
 Canonical view coefficients:
-x[-3] = 0	x[-2] = 1	x[-1] = 0	
+# -3..-1:+: 0 1 0 
 0.111111
 ===============================
 Number 4:
 Canonical view coefficients:
-x[-3] = 0	x[-2] = 1	x[-1] = 1	
+# -3..-1:+: 0 1 1 
 0.444444
 ===============================
 Number 5:
 Canonical view coefficients:
-x[-3] = 0	x[-2] = 1	x[-1] = 2	
+# -3..-1:+: 0 1 2 
 0.777778
 ===============================
 Number 6:
 Canonical view coefficients:
-x[-3] = 0	x[-2] = 2	x[-1] = 0	
+# -3..-1:+: 0 2 0 
 0.222222
 ===============================
 Number 7:
 Canonical view coefficients:
-x[-3] = 0	x[-2] = 2	x[-1] = 1	
+# -3..-1:+: 0 2 1 
 0.555556
 ===============================
 Number 8:
 Canonical view coefficients:
-x[-3] = 0	x[-2] = 2	x[-1] = 2	
+# -3..-1:+: 0 2 2 
 0.888889
 ===============================
