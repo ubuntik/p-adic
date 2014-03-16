@@ -15,7 +15,7 @@ int main()
 	int gamma = -1;
 	int ind;
 	int i, j;
-	complex res;
+	complex double res;
 	PADIC_ERR err = ESUCCESS;
 
 	printf("Test#3: Wavelet functions\n");

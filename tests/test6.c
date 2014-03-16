@@ -35,7 +35,7 @@ int main()
 	double (*pfunc)(pa_num* pnum) = NULL;
 	int gamma;
 	pa_num *n = NULL;
-	complex ret;
+	complex double ret;
 	double num;
 	PADIC_ERR err = ESUCCESS;
 

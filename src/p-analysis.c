@@ -149,10 +149,10 @@ int indicator(pa_num *x, pa_num *n, int gamma)
 	return (norm <= 1) ? 1 : 0;
 }
 
-complex character(pa_num *pa)
+complex double character(pa_num *pa)
 {
 	pa_num *fnum = NULL;
-	complex ret = I;
+	complex double ret = I;
 	PADIC_ERR err = ESUCCESS;
 
 	if (pa == NULL) {
@@ -172,12 +172,13 @@ complex character(pa_num *pa)
 		return ret;
 	}
 
-	ret = cexpf(2 * PI * I *
+	ret = cexp(2 * PI * I *
 			padic2double(fnum));
 
 	if (LOG_LEVEL >= 1) {
 		fprintf(stdout, "character: char(%g) = %g + i*%g\n",
 			padic2double(pa), creal(ret), cimag(ret));
+		fprintf(stdout, "character: 2pi{x} = %g\n", 2 * PI * padic2double(fnum));
 		fprintf(stdout, "character: ");
 		print_pa_num(pa);
         }
@@ -186,11 +187,11 @@ complex character(pa_num *pa)
 }
 
 
-complex wavelet(pa_num *x, pa_num *n, int gamma, int j)
+complex double wavelet(pa_num *x, pa_num *n, int gamma, int j)
 {
 	pa_num *kern = NULL, *jkern = NULL;
 	pa_num *mult = NULL, *subtr = NULL;
-	complex ret = I;
+	complex double ret = I;
 	PADIC_ERR err = ESUCCESS;
 
 	if (x == NULL || n == NULL) {
@@ -338,10 +339,10 @@ double integral(double (*func)(pa_num *pnum), int g_min, int g_max)
 	return ret * power((double)P, -g_max);
 }
 
-complex wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
+complex double wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
 						int j, int g_min, int g_max)
 {
-	complex ret = I;
+	complex double ret = I;
 	PADIC_ERR err = ESUCCESS;
 	double img = 0, rez = 0, fun = 0;
 	int qs_sz = 0, i = 0;
@@ -550,10 +551,10 @@ double integral_B_x(double (*func)(pa_num *pnum), pa_num *x, int g_min, int g_ma
 	return ret * power((double)P, -g_max);
 }
 
-complex wavelet_integral_C_gnj_x(double (*func)(pa_num *pnum), pa_num *x,
+complex double wavelet_integral_C_gnj_x(double (*func)(pa_num *pnum), pa_num *x,
 		pa_num *n, int gamma, int j, int g_min, int g_max)
 {
-	complex ret = I;
+	complex double ret = I;
 	PADIC_ERR err = ESUCCESS;
 	double img = 0, rez = 0, fun = 0;
 	int qs_sz = 0, i = 0;
@@ -663,11 +664,11 @@ complex wavelet_integral_C_gnj_x(double (*func)(pa_num *pnum), pa_num *x,
 
 }
 
-complex wavelet_integral_Agnj(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
+complex double wavelet_integral_Agnj(double (*func)(pa_num *pnum), pa_num *n, int gamma, \
 						int j, int g_min, int g_max)
 {
 	// start condition + sopryazhenniy wavelet
-	complex ret = I;
+	complex double ret = I;
 	PADIC_ERR err = ESUCCESS;
 	double img = 0, rez = 0, fun = 0;
 	int qs_sz = 0, i = 0;

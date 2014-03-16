@@ -5,5 +5,5 @@ Parameters: g_max = 4, g_min = -5
 >>>>> Integral dx: 243
 
 Current gamma: 0
->>>>> Result2: -0.333333 + i * 0.000000
+>>>>> Result2: -0.333333 + i * -0.000000
 

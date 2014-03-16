@@ -7,8 +7,6 @@
 #include <complex.h>
 #include <stdint.h>
 
-#define _Complex double
-
 #define P 3
 #define PI 3.14159265358979323846f
 
