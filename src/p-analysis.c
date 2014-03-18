@@ -453,7 +453,7 @@ complex double wavelet_integral(double (*func)(pa_num *pnum), pa_num *n, int gam
 		err = p_gamma_pa_num(pa, qs[i], g_max);
 		if (err != ESUCCESS) {
 			fprintf(stderr, "Invalid multiplication on p-gamma\n");
-			return ret;
+			return err;
 		}
 
 		if ( pfunc(pa) == INFINITY ) {

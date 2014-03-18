@@ -13,9 +13,10 @@ TESTS_DIR = ./tests
 P_DEF_O = ${OBJ_DIR}/p-def.o
 P_ARITHM_O = ${OBJ_DIR}/p-def.o ${OBJ_DIR}/p-arithm.o
 P_ANALYSIS_O = ${OBJ_DIR}/p-def.o ${OBJ_DIR}/p-arithm.o ${OBJ_DIR}/p-analysis.o
+P_CAUCHY_O = ${OBJ_DIR}/p-def.o ${OBJ_DIR}/p-arithm.o ${OBJ_DIR}/p-analysis.o ${OBJ_DIR}/cauchy.o
 
 .PHONY: directories
-all: directories test1 test2 test3 test4 test5 test6 test7
+all: directories test1 test2 test3 test4 test5 test6 test7 test8
 directories: ${OBJ_DIR} ${BIN_DIR} ${SRC_DIR} ${TESTS_DIR} ${RES_DIR}
 
 ${OBJ_DIR}:
@@ -33,9 +34,6 @@ ${RES_DIR}:
 
 %.o: ${TESTS_DIR}/%.c
 	$(CC) -c $(CFLAGS) $< -o ${OBJ_DIR}/$@
-
-#cauchy.o: ${SRC_DIR}/cauchy_problem.c ${SRC_DIR}/cauchy_problem.h ${SRC_DIR}/p-analysis.h
-#	$(CC) -c $(CFLAGS) ${SRC_DIR}/cauchy_problem.c -o ${OBJ_DIR}/cauchy.o
 
 test1: directories test1.o p-def.o
 	$(CC) $(CFLAGS) ${OBJ_DIR}/test1.o ${P_DEF_O} -o ${BIN_DIR}/test1 $(LIBS)
@@ -58,8 +56,8 @@ test6: directories test6.o p-def.o p-arithm.o p-analysis.o
 test7: directories test7.o p-def.o
 	$(CC) $(CFLAGS) ${OBJ_DIR}/test7.o ${P_DEF_O} -o ${BIN_DIR}/test7 $(LIBS)
 
-#test9: directories test9.o cauchy.o p-adic.o
-#	$(CC) $(CFLAGS) ${OBJ_DIR}/test9.o ${OBJ_DIR}/p-adic.o ${OBJ_DIR}/cauchy.o -o ${BIN_DIR}/test9 $(LIBS)
+test8: directories test8.o p-def.o p-arithm.o p-analysis.o cauchy.o
+	$(CC) $(CFLAGS) ${OBJ_DIR}/test8.o ${P_CAUCHY_O} -o ${BIN_DIR}/test8 $(LIBS)
 
 tar:
 	tar czvf ../p-adic.tar.gz ../p-adic/Makefile ../p-adic/README ../p-adic/src ../p-adic/tests
