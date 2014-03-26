@@ -5,14 +5,20 @@
 
 #include <cauchy.h>
 
-#define G_MAX (0)
-#define G_MIN (-5)
+//#define G_MIN (-7)
+//#define G_MIN (-3)
+//#define G_CHY (0)
+//#define G_MAX (2)
+
+#define G_MIN (-2)
+#define G_CHY (0)
+#define G_MAX (1)
 
 static const int gmin = G_MIN;
 static const int gmax = G_MAX;
+static const int gchy = G_CHY;
 
 // function should be got fron func_args
-// only for ALPHA = 2
 double function(pa_num* pa)
 {
 	double ret = 0;
@@ -20,10 +26,17 @@ double function(pa_num* pa)
 		fprintf(stderr, "Involid pointer\n");
 		return -1;
 	}
+/*
+ * Alpha = 1
+	ret = 1.0 / (p_norm(pa) * p_norm(pa));
+	return (p_norm(pa) <= power(P, -gchy)) ? \
+			power(P, 2 * gchy) : ret;
+*/
+// Alpha = 2
 	ret = 1.0 / (p_norm(pa) * p_norm(pa) * p_norm(pa));
-	return (p_norm(pa) <= power(P, -gmax)) ? \
-			power(P, 3 * gmax) : ret;
-			// p, - - (alfa + 1) * gmax
+	return (p_norm(pa) <= power(P, -gchy)) ? \
+			power(P, 3 * gchy) : ret;
+			// p, - (alfa + 1) * (-gmax)
 }
 
 double wrapped_indicator(pa_num *pa)
@@ -53,7 +66,12 @@ int main()
 {
 	PADIC_ERR err = ESUCCESS;
 
-	err = solve_problem(function, wrapped_indicator, gmin, gmax);
+	if (gmax <= gchy) {
+		printf("gmax should be more then gchy\n");
+		return -1;
+	}
+
+	err = solve_problem(function, wrapped_indicator, gmin, gmax, gchy);
 	if (err != ESUCCESS)
 		printf("FAILED\n");
 	else

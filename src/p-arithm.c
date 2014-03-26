@@ -269,8 +269,8 @@ PADIC_ERR sub(pa_num *res, pa_num *pa1, pa_num *pa2)
 			return err;
 		}
 	} else {
-		ext_pa->sign = (cmp < 0) ? pa1->sign : reverse_sign(pa1->sign);
-		err = (cmp < 0) ? __dummy_sub(ext_pa, pa1, pa2) : \
+		ext_pa->sign = (cmp > 0) ? pa1->sign : reverse_sign(pa1->sign);
+		err = (cmp > 0) ? __dummy_sub(ext_pa, pa1, pa2) : \
 						__dummy_sub(ext_pa, pa2, pa1);
 		if (err != ESUCCESS) {
 			fprintf(stderr, "Invalid dummy sub\n");

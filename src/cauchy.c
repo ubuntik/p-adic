@@ -12,9 +12,9 @@ typedef struct Couchy_coeffs {
 	pa_num *n;
 	int j;
 	complex double Wgnj_x;
-	double Cgnj_x;
-	double Bgnj_x;
-	double Agnj_x;
+	complex double Cgnj_x;
+	complex double Bgnj_x;
+	complex double Agnj_x;
 } Couchy_coeffs;
 
 // Bgnj_x = Integral(rho(x-y)*WAVEgnj(y)dy) by Qp
@@ -31,6 +31,7 @@ double (*rho)(pa_num *pnum) = NULL;
 double (*start_cond)(pa_num *pnum) = NULL;
 int g_min = 0;
 int g_max = -1;
+int g_chy = -1;
 
 PADIC_ERR do_for_j(int gamma, pa_num *n, int j)
 {
@@ -124,6 +125,7 @@ PADIC_ERR do_for_j(int gamma, pa_num *n, int j)
 	Cgnj_x = C_rez * power((double)P, -g_max) + I * C_img * power((double)P, -g_max);
 	Agnj_x = A_rez * power((double)P, -g_max) - I * A_img * power((double)P, -g_max);
 
+/*
 	if (cimag(Bgnj_x) > 0.000001) {
 		fprintf(stderr, ">>> C <<< Something wrong!!!\n");
 		return EINVCOEFF;
@@ -140,6 +142,11 @@ PADIC_ERR do_for_j(int gamma, pa_num *n, int j)
 	array[cnt].Bgnj_x = creal(Bgnj_x);
 	array[cnt].Cgnj_x = creal(Cgnj_x);
 	array[cnt].Agnj_x = creal(Agnj_x);
+*/
+
+	array[cnt].Bgnj_x = Bgnj_x;
+	array[cnt].Cgnj_x = Cgnj_x;
+	array[cnt].Agnj_x = Agnj_x;
 	return err;
 }
 
@@ -158,7 +165,7 @@ PADIC_ERR do_for_n(int gamma, pa_num *n)
 		return EINVPNTR;
 	}
 
-	if (gamma < g_min || gamma > g_max) {
+	if (gamma < g_min || gamma > g_chy) {
 		fprintf(stderr, "Invalid Value gamma: %d\n", gamma);
 		fprintf(stderr, "gamma should be greater than %d\n", g_min);
 		fprintf(stderr, "gamma should be less than %d\n", g_max);
@@ -172,18 +179,23 @@ PADIC_ERR do_for_n(int gamma, pa_num *n)
 		array[cnt].j = j;
 		array[cnt].Wgnj_x = wavelet(x, n, -gamma, j);
 
+/*
 		if (cimag(array[cnt].Wgnj_x) > 0.000001) {
 			fprintf(stderr, ">>> W >>> Something wrong!!!\n");
 			return EINVCOEFF;
 		}
+*/
 
 		err = do_for_j(gamma, n, j);
 		if (err != ESUCCESS)
 			return err;
-		fprintf(stdout, "%d\t%.04g\t%d\t%.04g\t%.04g\t%.04g\t%.04g\n",
-			gamma, padic2double(n), j, creal(array[cnt].Wgnj_x),
-			creal(array[cnt].Bgnj_x), creal(array[cnt].Cgnj_x),
-			creal(array[cnt].Agnj_x));
+		fprintf(stdout, "%d\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\n",
+			gamma, padic2double(n),
+			creal(array[cnt].Wgnj_x), cimag(array[cnt].Wgnj_x),
+			creal(array[cnt].Bgnj_x), cimag(array[cnt].Bgnj_x),
+			creal(array[cnt].Cgnj_x), cimag(array[cnt].Cgnj_x),
+			creal(array[cnt].Bgnj_x - array[cnt].Cgnj_x),
+			cimag(array[cnt].Bgnj_x - array[cnt].Cgnj_x));
 		cnt++;
 	}
 	return err;
@@ -194,7 +206,6 @@ PADIC_ERR get_integrals()
 	int gamma = 0, ns_sz = 0, i = 0;
 	PADIC_ERR err = ESUCCESS;
 	pa_num **ns = NULL;
-	pa_num *ni = NULL;
 
 	if (start_cond == NULL || rho == NULL) {
 		fprintf(stderr, "Invalid pointer to function\n");
@@ -206,7 +217,7 @@ PADIC_ERR get_integrals()
 	}
 
 	// count Bgnj(x), Cgnj(x) and Agnj_x integrals
-	for (gamma = g_min; gamma < g_max; gamma++) {
+	for (gamma = g_min; gamma <= g_chy; gamma++) {
 		ns_sz = (size_t)qspace_sz(g_min, gamma);
 		ns = (pa_num **)malloc(ns_sz * sizeof(pa_num*));
 		if (ns == NULL) {
@@ -219,19 +230,8 @@ PADIC_ERR get_integrals()
 			fprintf(stderr, "Involid generating qspace\n");
 			return err;
 		}
-
 		for (i = 0; i < ns_sz; i++) {
-			ni = (pa_num *)malloc(sizeof(pa_num));
-			if (ni == NULL) {
-				fprintf(stderr, "Cannot alloc memory\n");
-				return EMALLOC;
-			}
-			err = p_gamma_pa_num(ni, ns[i], gamma);
-			if (err != ESUCCESS) {
-				fprintf(stderr, "Invalid multiplication on p-gamma\n");
-				return err;
-			}
-			err = do_for_n(gamma, ni);
+			err = do_for_n(gamma, ns[i]);
 			if (err != ESUCCESS)
 				return err;
 			free_pa_num(ns[i]);
@@ -244,7 +244,7 @@ PADIC_ERR get_integrals()
 PADIC_ERR solve_problem(
 		double (*rho0)(pa_num *pnum),
 		double (*start_cond0)(pa_num *pnum),
-		int gmin, int gmax)
+		int gmin, int gmax, int gchy)
 {
 	int fd = -1, i = 0;
 	char *srv_str = NULL;
@@ -288,8 +288,8 @@ PADIC_ERR solve_problem(
 		exit(errno);
 	}
 
-	for (gamma = gmin; gamma < gmax; gamma++)
-		array_sz += qspace_sz(gamma + 1, gmax) * (P - 1);
+	for (gamma = gmin; gamma <= gchy; gamma++)
+		array_sz += qspace_sz(gamma + 1, gchy + 1) * (P - 1);
 
 	array = (Couchy_coeffs *)malloc(array_sz * sizeof(Couchy_coeffs));
 	if (array == NULL) {
@@ -297,7 +297,7 @@ PADIC_ERR solve_problem(
 		exit(-1);
 	}
 
-	// get x = 0
+	// get x
 	x0 = (pa_num *)malloc(sizeof(pa_num));
 	if (x0 == NULL) {
 		fprintf(stderr, "Cannot alloc memory\n");
@@ -310,13 +310,25 @@ PADIC_ERR solve_problem(
 		exit(err);
 	}
 
+/*
+	err = set_x_by_gamma(x0, -1, 2);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid init number\n");
+		exit(err);
+	}
+*/
+
+	fprintf(stdout, "Get x = %g\n", padic2double(x0));
+	print_pa_num(x0);
+
 	g_min = gmin;
 	g_max = gmax;
+	g_chy = gchy;
 	x = x0;
 	rho = rho0;
 	start_cond = start_cond0;
 
-	fprintf(stdout, "gamma\tn\tj\tWgnj(x)\tBgnj(x)\tCgnj(x)\tAgnj(x)\n");
+	fprintf(stdout, "gamma\tn\tWgnj(x)\t\t\tBgnj(x)\t\t\tCgnj(x)\t\t\tB-C(x)\n");
 
 	err = get_integrals();
 	if (err != ESUCCESS) {
@@ -333,7 +345,8 @@ PADIC_ERR solve_problem(
 		Sum_Phi = power(P, (double)gmin);
 		for (i = 0; i < array_sz; i++) {
 			Phi_gnj_t = array[i].Agnj_x * exp(-(array[i].Bgnj_x - array[i].Cgnj_x) * t);
-			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
+//			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
+			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
 		}
 
 		fprintf(output, "%.02f\t%g\n", t, Sum_Phi);
@@ -343,7 +356,8 @@ PADIC_ERR solve_problem(
 		Sum_Phi = power(P, (double)gmin);
 		for (i = 0; i < array_sz; i++) {
 			Phi_gnj_t = array[i].Agnj_x * exp(-(array[i].Bgnj_x - array[i].Cgnj_x) * t);
-			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
+//			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
+			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
 		}
 
 		fprintf(output, "%.02f\t%g\n", t, Sum_Phi);
@@ -354,7 +368,8 @@ PADIC_ERR solve_problem(
 		Sum_Phi = power(P, (double)gmin);
 		for (i = 0; i < array_sz; i++) {
 			Phi_gnj_t = array[i].Agnj_x * exp(-(array[i].Bgnj_x - array[i].Cgnj_x) * t);
-			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
+//			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
+			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
 		}
 
 		fprintf(output, "%.02f\t%g\n", t, Sum_Phi);
@@ -364,7 +379,8 @@ PADIC_ERR solve_problem(
 		Sum_Phi = power(P, (double)gmin);
 		for (i = 0; i < array_sz; i++) {
 			Phi_gnj_t = array[i].Agnj_x * exp(-(array[i].Bgnj_x - array[i].Cgnj_x) * t);
-			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
+//			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
+			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
 		}
 
 		fprintf(output, "%.02f\t%g\n", t, Sum_Phi);
