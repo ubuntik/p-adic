@@ -15,6 +15,7 @@ typedef struct Couchy_coeffs {
 	complex double Cgnj_x;
 	complex double Bgnj_x;
 	complex double Agnj_x;
+	complex double Lgnj_x;
 } Couchy_coeffs;
 
 // Bgnj_x = Integral(rho(x-y)*WAVEgnj(y)dy) by Qp
@@ -108,11 +109,11 @@ PADIC_ERR do_for_j(int gamma, pa_num *n, int j)
 			A_fun = start_cond(pa);
 
 			if (creal(array[cnt].Wgnj_x) != 0) {
-				B_rez += creal(array[cnt].Wgnj_x) * B_fun;
-				B_img += cimag(array[cnt].Wgnj_x) * B_fun;
+				C_rez += creal(array[cnt].Wgnj_x) * C_fun;
+				C_img += cimag(array[cnt].Wgnj_x) * C_fun;
 			}
-			C_rez += creal(wavelet(pa, n, -gamma, j)) * C_fun;
-			C_img += cimag(wavelet(pa, n, -gamma, j)) * C_fun;
+			B_rez += creal(wavelet(pa, n, -gamma, j)) * B_fun;
+			B_img += cimag(wavelet(pa, n, -gamma, j)) * B_fun;
 			A_rez += creal(wavelet(pa, n, -gamma, j)) * A_fun;
 			A_img += cimag(wavelet(pa, n, -gamma, j)) * A_fun;
 		}
@@ -147,6 +148,17 @@ PADIC_ERR do_for_j(int gamma, pa_num *n, int j)
 	array[cnt].Bgnj_x = Bgnj_x;
 	array[cnt].Cgnj_x = Cgnj_x;
 	array[cnt].Agnj_x = Agnj_x;
+
+	if (fabs(creal(array[cnt].Wgnj_x)) > 0.0000000001)
+		array[cnt].Lgnj_x = (array[cnt].Bgnj_x - array[cnt].Cgnj_x) / array[cnt].Wgnj_x;
+	else
+		array[cnt].Lgnj_x = 0;
+
+	if (fabs(cimag(array[cnt].Lgnj_x)) > 0.0000000001) {
+		fprintf(stderr, ">>> L <<< Something wrong!!!\n");
+		return EINVCOEFF;
+	}
+
 	return err;
 }
 
@@ -191,11 +203,15 @@ PADIC_ERR do_for_n(int gamma, pa_num *n)
 			return err;
 		fprintf(stdout, "%d\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\n",
 			gamma, padic2double(n),
-			creal(array[cnt].Wgnj_x), cimag(array[cnt].Wgnj_x),
-			creal(array[cnt].Bgnj_x), cimag(array[cnt].Bgnj_x),
-			creal(array[cnt].Cgnj_x), cimag(array[cnt].Cgnj_x),
-			creal(array[cnt].Bgnj_x - array[cnt].Cgnj_x),
-			cimag(array[cnt].Bgnj_x - array[cnt].Cgnj_x));
+			creal(array[cnt].Wgnj_x),
+			fabs(cimag(array[cnt].Wgnj_x)) > 0.0000000001 ? cimag(array[cnt].Wgnj_x) : 0,
+			creal(array[cnt].Bgnj_x),
+			fabs(cimag(array[cnt].Bgnj_x)) > 0.0000000001 ? cimag(array[cnt].Bgnj_x) : 0,
+			creal(array[cnt].Cgnj_x),
+			fabs(cimag(array[cnt].Cgnj_x)) > 0.0000000001 ? cimag(array[cnt].Cgnj_x) : 0,
+			creal(array[cnt].Lgnj_x),
+			fabs(cimag(array[cnt].Lgnj_x)) > 0.0000000001 ? cimag(array[cnt].Lgnj_x) : 0);
+
 		cnt++;
 	}
 	return err;
@@ -250,7 +266,7 @@ PADIC_ERR solve_problem(
 	char *srv_str = NULL;
 	pa_num *x0 = NULL;
 	PADIC_ERR err = ESUCCESS;
-	double Sum_Phi = 0, Phi_gnj_t = 0;
+	complex double Sum_Phi = 0, Phi_gnj_t = 0;
 	float t = 0.01;
 	int array_sz = 0, gamma = 0;
 	FILE *output;
@@ -304,19 +320,20 @@ PADIC_ERR solve_problem(
 		exit(-1);
 	}
 
+
 	err = init_pa_num(x0, gmin, gmax);
 	if (err != ESUCCESS) {
 		fprintf(stderr, "Involid init number\n");
 		exit(err);
 	}
 
-/*
-	err = set_x_by_gamma(x0, -1, 2);
+
+	err = set_x_by_gamma(x0, -1, 1);
 	if (err != ESUCCESS) {
 		fprintf(stderr, "Involid init number\n");
 		exit(err);
 	}
-*/
+
 
 	fprintf(stdout, "Get x = %g\n", padic2double(x0));
 	print_pa_num(x0);
@@ -328,7 +345,7 @@ PADIC_ERR solve_problem(
 	rho = rho0;
 	start_cond = start_cond0;
 
-	fprintf(stdout, "gamma\tn\tWgnj(x)\t\t\tBgnj(x)\t\t\tCgnj(x)\t\t\tB-C(x)\n");
+	fprintf(stdout, "gamma\tn\tWgnj(x)\t\tBgnj(x)\t\tCgnj(x)\t\tL(x)\n");
 
 	err = get_integrals();
 	if (err != ESUCCESS) {
@@ -344,47 +361,98 @@ PADIC_ERR solve_problem(
 	for (t = 0.01; t < 1; t += 0.01) {
 		Sum_Phi = power(P, (double)gmin);
 		for (i = 0; i < array_sz; i++) {
-			Phi_gnj_t = array[i].Agnj_x * exp(-(array[i].Bgnj_x - array[i].Cgnj_x) * t);
-//			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
+			Phi_gnj_t = array[i].Agnj_x * exp(creal(array[i].Lgnj_x) * t);
 			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
 		}
 
-		fprintf(output, "%.02f\t%g\n", t, Sum_Phi);
+		if (fabs(cimag(Sum_Phi)) > 0.0000000001) {
+			fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
+		}
+
+		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi));
 	}
 
-	for (t = 1; t < 10000; t += 1) {
+	for (t = 1; t < 1000; t += 1) {
 		Sum_Phi = power(P, (double)gmin);
 		for (i = 0; i < array_sz; i++) {
-			Phi_gnj_t = array[i].Agnj_x * exp(-(array[i].Bgnj_x - array[i].Cgnj_x) * t);
+			Phi_gnj_t = array[i].Agnj_x * exp(creal(array[i].Lgnj_x) * t);
 //			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
 			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
 		}
 
-		fprintf(output, "%.02f\t%g\n", t, Sum_Phi);
+		if (fabs(cimag(Sum_Phi)) > 0.0000000001) {
+			fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
+		}
+
+		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi));
 	}
 
 
-	for (t = 10000; t < 150000; t += 10) {
+	for (t = 1000; t < 10000; t += 10) {
 		Sum_Phi = power(P, (double)gmin);
 		for (i = 0; i < array_sz; i++) {
-			Phi_gnj_t = array[i].Agnj_x * exp(-(array[i].Bgnj_x - array[i].Cgnj_x) * t);
+			Phi_gnj_t = array[i].Agnj_x * exp(creal(array[i].Lgnj_x) * t);
 //			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
 			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
 		}
 
-		fprintf(output, "%.02f\t%g\n", t, Sum_Phi);
+		if (fabs(cimag(Sum_Phi)) > 0.0000000001) {
+			fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
+		}
+
+		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi));
 	}
 
-	for (t = 150000; t < 10000000; t += 100) {
+	for (t = 10000; t < 100000; t += 100) {
 		Sum_Phi = power(P, (double)gmin);
 		for (i = 0; i < array_sz; i++) {
-			Phi_gnj_t = array[i].Agnj_x * exp(-(array[i].Bgnj_x - array[i].Cgnj_x) * t);
+			Phi_gnj_t = array[i].Agnj_x * exp(creal(array[i].Lgnj_x) * t);
 //			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
 			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
 		}
 
-		fprintf(output, "%.02f\t%g\n", t, Sum_Phi);
+		if (fabs(cimag(Sum_Phi)) > 0.0000000001) {
+			fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
+		}
+
+		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi));
 	}
+
+#if 0
+	for (t = 100000; t < 1000000; t += 1000) {
+		Sum_Phi = power(P, (double)gmin);
+		for (i = 0; i < array_sz; i++) {
+			Phi_gnj_t = array[i].Agnj_x * exp(creal(array[i].Lgnj_x) * t);
+//			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
+			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
+		}
+
+		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi));
+	}
+
+	for (t = 1000000; t < 100000000; t += 10000) {
+		Sum_Phi = power(P, (double)gmin);
+		for (i = 0; i < array_sz; i++) {
+			Phi_gnj_t = array[i].Agnj_x * exp(creal(array[i].Lgnj_x) * t);
+//			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
+			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
+		}
+
+		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi));
+	}
+
+
+	for (t = 100000000; t < 10000000000; t += 100000) {
+		Sum_Phi = power(P, (double)gmin);
+		for (i = 0; i < array_sz; i++) {
+			Phi_gnj_t = array[i].Agnj_x * exp(creal(array[i].Lgnj_x) * t);
+//			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
+			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
+		}
+
+		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi));
+	}
+#endif
 
 
 	fflush(output);

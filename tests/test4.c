@@ -17,7 +17,7 @@ int main()
 	int i, j;
 	complex double res;
 	PADIC_ERR err = ESUCCESS;
-
+#if 0
 	printf("Test#3: Wavelet functions\n");
 	printf("p = %d; Gamma_min = %d; Gamma_max = %d\n", P, G_MIN, G_MAX);
 
@@ -114,6 +114,39 @@ int main()
 		free_pa_num(x);
 		free_pa_num(n);
 	}
+#endif
+
+	pa = (pa_num *)malloc(sizeof(pa_num));
+	if (pa == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		exit(-1);
+	}
+	err = init_pa_num(pa, 0, 2);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid init number\n");
+		exit(err);
+	}
+
+	err = set_x_by_gamma(pa, 0, 1);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid setting value\n");
+		exit(err);
+	}
+
+	err = set_x_by_gamma(pa, 1, 1);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid setting value\n");
+		exit(err);
+	}
+
+	err = set_x_by_gamma(pa, 2, 1);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid setting value\n");
+		exit(err);
+	}
+
+
+	printf(">>>> %g + i %g\n", character(pa));
 
 	return 0;
 }

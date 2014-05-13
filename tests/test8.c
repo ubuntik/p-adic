@@ -6,7 +6,6 @@
 #include <cauchy.h>
 
 //#define G_MIN (-7)
-//#define G_MIN (-3)
 //#define G_CHY (0)
 //#define G_MAX (2)
 
@@ -26,16 +25,31 @@ double function(pa_num* pa)
 		fprintf(stderr, "Involid pointer\n");
 		return -1;
 	}
-/*
- * Alpha = 1
+
+/* Alpha = 1 */
+
 	ret = 1.0 / (p_norm(pa) * p_norm(pa));
 	return (p_norm(pa) <= power(P, -gchy)) ? \
 			power(P, 2 * gchy) : ret;
-*/
-// Alpha = 2
+
+/* Alpha = 2 */
+/*
 	ret = 1.0 / (p_norm(pa) * p_norm(pa) * p_norm(pa));
 	return (p_norm(pa) <= power(P, -gchy)) ? \
 			power(P, 3 * gchy) : ret;
+*/
+/* Alpha = 3 */
+/*
+	ret = 1.0 / (p_norm(pa) * p_norm(pa) * p_norm(pa) * p_norm(pa));
+	return (p_norm(pa) <= power(P, -gchy)) ? \
+			power(P, 4 * gchy) : ret;
+*/
+/* Alpha = 4 */
+/*
+	ret = 1.0 / (p_norm(pa) * p_norm(pa) * p_norm(pa) * p_norm(pa) * p_norm(pa));
+	return (p_norm(pa) <= power(P, -gchy)) ? \
+			power(P, 5 * gchy) : ret;
+*/
 			// p, - (alfa + 1) * (-gmax)
 }
 
@@ -56,6 +70,7 @@ double wrapped_indicator(pa_num *pa)
 		fprintf(stderr, "Involid init number\n");
 		exit(err);
 	}
+
 	ret = (double)indicator(pa, n, gamma);
 	free_pa_num(n);
 

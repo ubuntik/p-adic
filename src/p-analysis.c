@@ -225,6 +225,7 @@ complex double character(pa_num *pa)
 	if (LOG_LEVEL >= 1) {
 		fprintf(stdout, "character: char(%g) = %g + i*%g\n",
 			padic2double(pa), creal(ret), cimag(ret));
+		fprintf(stdout, "character: {x} = %g\n", padic2double(fnum));
 		fprintf(stdout, "character: 2pi{x} = %g\n", 2 * PI * padic2double(fnum));
 		fprintf(stdout, "character: ");
 		print_pa_num(pa);
