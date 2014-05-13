@@ -27,17 +27,17 @@ double function(pa_num* pa)
 	}
 
 /* Alpha = 1 */
-
+/*
 	ret = 1.0 / (p_norm(pa) * p_norm(pa));
 	return (p_norm(pa) <= power(P, -gchy)) ? \
 			power(P, 2 * gchy) : ret;
-
+*/
 /* Alpha = 2 */
-/*
+
 	ret = 1.0 / (p_norm(pa) * p_norm(pa) * p_norm(pa));
 	return (p_norm(pa) <= power(P, -gchy)) ? \
 			power(P, 3 * gchy) : ret;
-*/
+
 /* Alpha = 3 */
 /*
 	ret = 1.0 / (p_norm(pa) * p_norm(pa) * p_norm(pa) * p_norm(pa));
@@ -81,12 +81,27 @@ int main()
 {
 	PADIC_ERR err = ESUCCESS;
 
+	int ini_gamma = 0;
+	pa_num *ini_n = NULL;
+
 	if (gmax <= gchy) {
 		printf("gmax should be more then gchy\n");
 		return -1;
 	}
 
-	err = solve_problem(function, wrapped_indicator, gmin, gmax, gchy);
+	ini_n = (pa_num *)malloc(sizeof(pa_num));
+	if (ini_n == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		return -1;
+	}
+
+	err = init_pa_num(ini_n, gmin, gmax);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid init number\n");
+		exit(err);
+	}
+
+	err = solve_problem(function, wrapped_indicator, gmin, gmax, gchy, ini_gamma, ini_n);
 	if (err != ESUCCESS)
 		printf("FAILED\n");
 	else

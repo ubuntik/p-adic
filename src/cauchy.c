@@ -23,18 +23,16 @@ typedef struct Couchy_coeffs {
 // Bgnj_x - Cgnj_x
 
 // how many integrals we have to count (j * gamma * n)
-int array_sz = 0;
-Couchy_coeffs *array = NULL;
+Couchy_coeffs **array = NULL;
 int cnt = 0;
 
-pa_num *x = NULL;
 double (*rho)(pa_num *pnum) = NULL;
 double (*start_cond)(pa_num *pnum) = NULL;
 int g_min = 0;
 int g_max = -1;
 int g_chy = -1;
 
-PADIC_ERR do_for_j(int gamma, pa_num *n, int j)
+PADIC_ERR do_for_j(int gamma, pa_num *n, int j, pa_num *x, Couchy_coeffs *array)
 {
 	PADIC_ERR err = ESUCCESS;
 	int qs_sz = 0, i = 0;
@@ -126,25 +124,6 @@ PADIC_ERR do_for_j(int gamma, pa_num *n, int j)
 	Cgnj_x = C_rez * power((double)P, -g_max) + I * C_img * power((double)P, -g_max);
 	Agnj_x = A_rez * power((double)P, -g_max) - I * A_img * power((double)P, -g_max);
 
-/*
-	if (cimag(Bgnj_x) > 0.000001) {
-		fprintf(stderr, ">>> C <<< Something wrong!!!\n");
-		return EINVCOEFF;
-	}
-	if (cimag(Cgnj_x) > 0.000001) {
-		fprintf(stderr, ">>> C <<< Something wrong!!!\n");
-		return EINVCOEFF;
-	}
-	if (cimag(Agnj_x) > 0.000001) {
-		fprintf(stderr, ">>> A <<< Something wrong!!!\n");
-		return EINVCOEFF;
-	}
-
-	array[cnt].Bgnj_x = creal(Bgnj_x);
-	array[cnt].Cgnj_x = creal(Cgnj_x);
-	array[cnt].Agnj_x = creal(Agnj_x);
-*/
-
 	array[cnt].Bgnj_x = Bgnj_x;
 	array[cnt].Cgnj_x = Cgnj_x;
 	array[cnt].Agnj_x = Agnj_x;
@@ -163,7 +142,7 @@ PADIC_ERR do_for_j(int gamma, pa_num *n, int j)
 }
 
 
-PADIC_ERR do_for_n(int gamma, pa_num *n)
+PADIC_ERR do_for_n(int gamma, pa_num *n, pa_num *x, Couchy_coeffs *array)
 {
 	int j = 0;
 	PADIC_ERR err = ESUCCESS;
@@ -198,18 +177,18 @@ PADIC_ERR do_for_n(int gamma, pa_num *n)
 		}
 */
 
-		err = do_for_j(gamma, n, j);
+		err = do_for_j(gamma, n, j, x, array);
 		if (err != ESUCCESS)
 			return err;
 		fprintf(stdout, "%d\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\n",
 			gamma, padic2double(n),
-			creal(array[cnt].Wgnj_x),
+			fabs(creal(array[cnt].Wgnj_x)) > 0.0000000001 ? creal(array[cnt].Wgnj_x) : 0,
 			fabs(cimag(array[cnt].Wgnj_x)) > 0.0000000001 ? cimag(array[cnt].Wgnj_x) : 0,
-			creal(array[cnt].Bgnj_x),
+			fabs(creal(array[cnt].Bgnj_x)) > 0.0000000001 ? creal(array[cnt].Bgnj_x) : 0,
 			fabs(cimag(array[cnt].Bgnj_x)) > 0.0000000001 ? cimag(array[cnt].Bgnj_x) : 0,
-			creal(array[cnt].Cgnj_x),
+			fabs(creal(array[cnt].Cgnj_x)) > 0.0000000001 ? creal(array[cnt].Cgnj_x) : 0,
 			fabs(cimag(array[cnt].Cgnj_x)) > 0.0000000001 ? cimag(array[cnt].Cgnj_x) : 0,
-			creal(array[cnt].Lgnj_x),
+			fabs(creal(array[cnt].Lgnj_x)) > 0.0000000001 ? creal(array[cnt].Lgnj_x) : 0,
 			fabs(cimag(array[cnt].Lgnj_x)) > 0.0000000001 ? cimag(array[cnt].Lgnj_x) : 0);
 
 		cnt++;
@@ -217,7 +196,7 @@ PADIC_ERR do_for_n(int gamma, pa_num *n)
 	return err;
 }
 
-PADIC_ERR get_integrals()
+PADIC_ERR get_integrals(pa_num *x, Couchy_coeffs *array)
 {
 	int gamma = 0, ns_sz = 0, i = 0;
 	PADIC_ERR err = ESUCCESS;
@@ -247,7 +226,7 @@ PADIC_ERR get_integrals()
 			return err;
 		}
 		for (i = 0; i < ns_sz; i++) {
-			err = do_for_n(gamma, ns[i]);
+			err = do_for_n(gamma, ns[i], x, array);
 			if (err != ESUCCESS)
 				return err;
 			free_pa_num(ns[i]);
@@ -260,9 +239,10 @@ PADIC_ERR get_integrals()
 PADIC_ERR solve_problem(
 		double (*rho0)(pa_num *pnum),
 		double (*start_cond0)(pa_num *pnum),
-		int gmin, int gmax, int gchy)
+		int gmin, int gmax, int gchy,
+		int ini_gamma, pa_num *ini_n)
 {
-	int fd = -1, i = 0;
+	int fd = -1, i = 0, j = 0;
 	char *srv_str = NULL;
 	pa_num *x0 = NULL;
 	PADIC_ERR err = ESUCCESS;
@@ -270,6 +250,8 @@ PADIC_ERR solve_problem(
 	float t = 0.01;
 	int array_sz = 0, gamma = 0;
 	FILE *output;
+	pa_num **xs = NULL;
+	int x_sz = -1;
 
 	if (gmax < gmin) {
 		fprintf(stderr, "Invalid gammas' values:\n");
@@ -307,115 +289,132 @@ PADIC_ERR solve_problem(
 	for (gamma = gmin; gamma <= gchy; gamma++)
 		array_sz += qspace_sz(gamma + 1, gchy + 1) * (P - 1);
 
-	array = (Couchy_coeffs *)malloc(array_sz * sizeof(Couchy_coeffs));
+	x_sz = (size_t)qspace_sz(ini_gamma, gmax);
+	xs = (pa_num **)malloc(x_sz * sizeof(pa_num*));
+	if (xs == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		return EMALLOC;
+	}
+
+	err = gen_quotient_space(xs, ini_gamma, gmax);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid generating qspace\n");
+		return err;
+	}
+
+	array = (Couchy_coeffs **)malloc(x_sz * sizeof(Couchy_coeffs *));
 	if (array == NULL) {
 		fprintf(stderr, "Cannot alloc memory\n");
-		exit(-1);
+		return EMALLOC;
 	}
 
-	// get x
-	x0 = (pa_num *)malloc(sizeof(pa_num));
-	if (x0 == NULL) {
-		fprintf(stderr, "Cannot alloc memory\n");
-		exit(-1);
-	}
+	for (i = 0; i < x_sz; i++) {
+		x0 = (pa_num *)malloc(sizeof(pa_num));
+		if (x0 == NULL) {
+			fprintf(stderr, "Cannot alloc memory\n");
+			return EMALLOC;
+		}
 
+		err = p_gamma_pa_num(x0, xs[i], gmax);
+		if (err != ESUCCESS) {
+			fprintf(stderr, "Invalid multiplication on p-gamma\n");
+			return err;
+		}
 
-	err = init_pa_num(x0, gmin, gmax);
-	if (err != ESUCCESS) {
-		fprintf(stderr, "Involid init number\n");
-		exit(err);
-	}
+		fprintf(stdout, "Get x = %g\n", padic2double(x0));
+		print_pa_num(x0);
 
+		array[i] = (Couchy_coeffs *)malloc(array_sz * sizeof(Couchy_coeffs));
+		if (array[i] == NULL) {
+			fprintf(stderr, "Cannot alloc memory\n");
+			exit(-1);
+		}
 
-	err = set_x_by_gamma(x0, -1, 1);
-	if (err != ESUCCESS) {
-		fprintf(stderr, "Involid init number\n");
-		exit(err);
-	}
+		g_min = gmin;
+		g_max = gmax;
+		g_chy = gchy;
+		rho = rho0;
+		start_cond = start_cond0;
 
+		fprintf(stdout, "gamma\tn\tWgnj(x)\t\tBgnj(x)\t\tCgnj(x)\t\tL(x)\n");
 
-	fprintf(stdout, "Get x = %g\n", padic2double(x0));
-	print_pa_num(x0);
+		err = get_integrals(x0, array[i]);
+		if (err != ESUCCESS) {
+			fprintf(stderr, "Failed to count Integrals\n");
+			exit(err);
+		}
 
-	g_min = gmin;
-	g_max = gmax;
-	g_chy = gchy;
-	x = x0;
-	rho = rho0;
-	start_cond = start_cond0;
+		if (cnt != array_sz) {
+			fprintf(stderr, "Wrong calculaton on integrals: #%d, must be #%d\n", cnt, array_sz);
+			exit(-1);
+		}
 
-	fprintf(stdout, "gamma\tn\tWgnj(x)\t\tBgnj(x)\t\tCgnj(x)\t\tL(x)\n");
-
-	err = get_integrals();
-	if (err != ESUCCESS) {
-		fprintf(stderr, "Failed to count Integrals\n");
-		exit(err);
-	}
-
-	if (cnt != array_sz) {
-		fprintf(stderr, "Wrong calculaton on integrals: #%d, must be #%d\n", cnt, array_sz);
-		exit(-1);
+		cnt = 0;
 	}
 
 	for (t = 0.01; t < 1; t += 0.01) {
-		Sum_Phi = power(P, (double)gmin);
-		for (i = 0; i < array_sz; i++) {
-			Phi_gnj_t = array[i].Agnj_x * exp(creal(array[i].Lgnj_x) * t);
-			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
+		Sum_Phi = x_sz * power(P, (double)gmin);
+		for (j = 0; j < x_sz; j++) {
+			for (i = 0; i < array_sz; i++) {
+				Phi_gnj_t = array[j][i].Agnj_x * exp(creal(array[j][i].Lgnj_x) * t);
+				Sum_Phi += Phi_gnj_t * array[j][i].Wgnj_x;
+			}
+
+			if (fabs(cimag(Sum_Phi)) > 0.0000000001) {
+				fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
+			}
 		}
 
-		if (fabs(cimag(Sum_Phi)) > 0.0000000001) {
-			fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
-		}
-
-		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi));
+		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi) * power((double)P, -gmax));
 	}
 
 	for (t = 1; t < 1000; t += 1) {
-		Sum_Phi = power(P, (double)gmin);
-		for (i = 0; i < array_sz; i++) {
-			Phi_gnj_t = array[i].Agnj_x * exp(creal(array[i].Lgnj_x) * t);
-//			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
-			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
+		Sum_Phi = x_sz * power(P, (double)gmin);
+		for (j = 0; j < x_sz; j++) {
+			for (i = 0; i < array_sz; i++) {
+				Phi_gnj_t = array[j][i].Agnj_x * exp(creal(array[j][i].Lgnj_x) * t);
+				Sum_Phi += Phi_gnj_t * array[j][i].Wgnj_x;
+			}
+
+			if (fabs(cimag(Sum_Phi)) > 0.0000000001) {
+				fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
+			}
 		}
 
-		if (fabs(cimag(Sum_Phi)) > 0.0000000001) {
-			fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
-		}
-
-		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi));
+		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi) * power((double)P, -gmax));
 	}
 
 
 	for (t = 1000; t < 10000; t += 10) {
-		Sum_Phi = power(P, (double)gmin);
-		for (i = 0; i < array_sz; i++) {
-			Phi_gnj_t = array[i].Agnj_x * exp(creal(array[i].Lgnj_x) * t);
-//			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
-			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
+		Sum_Phi = x_sz * power(P, (double)gmin);
+		for (j = 0; j < x_sz; j++) {
+			for (i = 0; i < array_sz; i++) {
+				Phi_gnj_t = array[j][i].Agnj_x * exp(creal(array[j][i].Lgnj_x) * t);
+				Sum_Phi += Phi_gnj_t * array[j][i].Wgnj_x;
+			}
+
+			if (fabs(cimag(Sum_Phi)) > 0.0000000001) {
+				fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
+			}
 		}
 
-		if (fabs(cimag(Sum_Phi)) > 0.0000000001) {
-			fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
-		}
-
-		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi));
+		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi) * power((double)P, -gmax));
 	}
 
 	for (t = 10000; t < 100000; t += 100) {
-		Sum_Phi = power(P, (double)gmin);
-		for (i = 0; i < array_sz; i++) {
-			Phi_gnj_t = array[i].Agnj_x * exp(creal(array[i].Lgnj_x) * t);
-//			Sum_Phi += Phi_gnj_t * creal(array[i].Wgnj_x);
-			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
+		Sum_Phi = x_sz * power(P, (double)gmin);
+		for (j = 0; j < x_sz; j++) {
+			for (i = 0; i < array_sz; i++) {
+				Phi_gnj_t = array[j][i].Agnj_x * exp(creal(array[j][i].Lgnj_x) * t);
+				Sum_Phi += Phi_gnj_t * array[j][i].Wgnj_x;
+			}
+
+			if (fabs(cimag(Sum_Phi)) > 0.0000000001) {
+				fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
+			}
 		}
 
-		if (fabs(cimag(Sum_Phi)) > 0.0000000001) {
-			fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
-		}
-
-		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi));
+		fprintf(output, "%.02f\t%g\n", t, creal(Sum_Phi) * power((double)P, -gmax));
 	}
 
 #if 0
