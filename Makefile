@@ -62,6 +62,9 @@ test8: directories test8.o p-def.o p-arithm.o p-analysis.o cauchy.o
 test9: directories test9.o p-def.o p-arithm.o p-analysis.o cauchy.o
 	$(CC) $(CFLAGS) ${OBJ_DIR}/test9.o ${P_CAUCHY_O} -o ${BIN_DIR}/test9 $(LIBS)
 
+picture:
+	cp $(RES_DIR)/*-pl.dat plot.dat; ./doplain.gnu; cp $(RES_DIR)/*-ln.dat plot.dat; ./dolog.gnu; rm plot.dat;
+
 tar:
 	tar czvf ../p-adic.tar.gz ../p-adic/Makefile ../p-adic/README ../p-adic/src ../p-adic/tests
 

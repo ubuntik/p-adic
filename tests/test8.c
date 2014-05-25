@@ -105,6 +105,8 @@ int main()
 		exit(err);
 	}
 
+//	x0->sign = reverse_sign(x0->sign);
+
 	err = solve_problem(function, wrapped_indicator, gmin, gmax, gchy, x0);
 	if (err != ESUCCESS)
 		printf("FAILED\n");

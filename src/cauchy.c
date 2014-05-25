@@ -134,7 +134,7 @@ PADIC_ERR do_for_j(int gamma, pa_num *n, int j, pa_num *x, Couchy_coeffs *array)
 
 	if (fabs(cimag(array[cnt].Lgnj_x)) > ACCURACY) {
 		fprintf(stderr, ">>> L <<< Something wrong!!!\n");
-		return EINVCOEFF;
+		//return EINVCOEFF;
 	}
 
 	return err;
@@ -223,7 +223,7 @@ PADIC_ERR get_integrals(pa_num *x, Couchy_coeffs *array)
 	return err;
 }
 
-FILE *__prepare_file()
+FILE *__prepare_file(const char *sfx)
 {
 	int fd = -1;
 	char *srv_str = NULL;
@@ -235,7 +235,7 @@ FILE *__prepare_file()
 		return NULL;
 	}
 
-	snprintf(srv_str, 16, "./res/%05d.xls\n", getpid());
+	snprintf(srv_str, 19, "./res/%05d-%s.dat\n", getpid(), sfx);
 
 	if ((fd = open(srv_str, O_WRONLY | O_CREAT | O_EXCL, 0666)) < 0) {
 		perror("Cannot open file");
@@ -258,7 +258,7 @@ PADIC_ERR solve_problem(
 {
 	int i = 0, j = 0;
 	PADIC_ERR err = ESUCCESS;
-	FILE *output;
+	FILE *output, *lnout;
 	complex double Sum_Phi = 0, Phi_gnj_t = 0;
 	int array_sz = 0;
 	double t = 0, step = 0.001, max = 1;
@@ -277,7 +277,12 @@ PADIC_ERR solve_problem(
 		return EINVPNTR;
 	}
 
-	if ((output = __prepare_file()) == NULL) {
+	if ((output = __prepare_file("pl")) == NULL) {
+		fprintf(stderr, "Cannot open file\n");
+		return EINVPNTR;
+	}
+
+	if ((lnout = __prepare_file("ln")) == NULL) {
 		fprintf(stderr, "Cannot open file\n");
 		return EINVPNTR;
 	}
@@ -325,6 +330,7 @@ PADIC_ERR solve_problem(
 		if (fabs(cimag(Sum_Phi)) > ACCURACY)
 			fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
 		fprintf(output, "%.03f\t%g\n", t, creal(Sum_Phi));
+		fprintf(lnout, "%.03f\t%g\n", log(t), log(creal(Sum_Phi)));
 
 		if ((max - t < step) && (max < TIME)) {
 			step *= 10;
@@ -367,7 +373,7 @@ PADIC_ERR count_S_t(
 		return EINVPNTR;
 	}
 
-	if ((output = __prepare_file()) == NULL) {
+	if ((output = __prepare_file("pl")) == NULL) {
 		fprintf(stderr, "Cannot open file\n");
 		exit(-1);
 	}
