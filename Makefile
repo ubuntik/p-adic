@@ -16,7 +16,7 @@ P_ANALYSIS_O = ${OBJ_DIR}/p-def.o ${OBJ_DIR}/p-arithm.o ${OBJ_DIR}/p-analysis.o
 P_CAUCHY_O = ${OBJ_DIR}/p-def.o ${OBJ_DIR}/p-arithm.o ${OBJ_DIR}/p-analysis.o ${OBJ_DIR}/cauchy.o
 
 .PHONY: directories
-all: directories test1 test2 test3 test4 test5 test6 test7 test8
+all: directories test1 test2 test3 test4 test5 test6 test7 test8 test9
 directories: ${OBJ_DIR} ${BIN_DIR} ${SRC_DIR} ${TESTS_DIR} ${RES_DIR}
 
 ${OBJ_DIR}:
@@ -58,6 +58,9 @@ test7: directories test7.o p-def.o
 
 test8: directories test8.o p-def.o p-arithm.o p-analysis.o cauchy.o
 	$(CC) $(CFLAGS) ${OBJ_DIR}/test8.o ${P_CAUCHY_O} -o ${BIN_DIR}/test8 $(LIBS)
+
+test9: directories test9.o p-def.o p-arithm.o p-analysis.o cauchy.o
+	$(CC) $(CFLAGS) ${OBJ_DIR}/test9.o ${P_CAUCHY_O} -o ${BIN_DIR}/test9 $(LIBS)
 
 tar:
 	tar czvf ../p-adic.tar.gz ../p-adic/Makefile ../p-adic/README ../p-adic/src ../p-adic/tests

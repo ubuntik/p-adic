@@ -26,8 +26,6 @@ typedef struct Couchy_coeffs {
 // Cgnj_x = Integral(rho(x-y)*WAVEgnj(x)dy) by Qp
 // Bgnj_x - Cgnj_x
 
-// how many integrals we have to count (j * gamma * n)
-Couchy_coeffs *array = NULL;
 int cnt = 0;
 
 double (*rho)(pa_num *pnum) = NULL;
@@ -171,13 +169,6 @@ PADIC_ERR do_for_n(int gamma, pa_num *n, pa_num *x, Couchy_coeffs *array)
 		array[cnt].j = j;
 		array[cnt].Wgnj_x = wavelet(x, n, -gamma, j);
 
-/*
-		if (cimag(array[cnt].Wgnj_x) > 0.000001) {
-			fprintf(stderr, ">>> W >>> Something wrong!!!\n");
-			return EINVCOEFF;
-		}
-*/
-
 		err = do_for_j(gamma, n, j, x, array);
 		if (err != ESUCCESS)
 			return err;
@@ -232,19 +223,46 @@ PADIC_ERR get_integrals(pa_num *x, Couchy_coeffs *array)
 	return err;
 }
 
+FILE *__prepare_file()
+{
+	int fd = -1;
+	char *srv_str = NULL;
+	FILE *output;
+
+	srv_str = (char *)calloc(pathconf(".", _PC_PATH_MAX), sizeof(char));
+	if (srv_str == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		return NULL;
+	}
+
+	snprintf(srv_str, 16, "./res/%05d.xls\n", getpid());
+
+	if ((fd = open(srv_str, O_WRONLY | O_CREAT | O_EXCL, 0666)) < 0) {
+		perror("Cannot open file");
+		return NULL;
+	}
+	free(srv_str);
+
+	if ((output = fdopen(fd, "w")) == NULL) {
+		perror("Cannot open file");
+		return NULL;
+	}
+	return output;
+}
+
 PADIC_ERR solve_problem(
 		double (*rho0)(pa_num *pnum),
 		double (*start_cond0)(pa_num *pnum),
 		int gmin, int gmax, int gchy,
 		pa_num *x0)
 {
-	int fd = -1, i = 0, j = 0;
-	char *srv_str = NULL;
+	int i = 0, j = 0;
 	PADIC_ERR err = ESUCCESS;
+	FILE *output;
 	complex double Sum_Phi = 0, Phi_gnj_t = 0;
 	int array_sz = 0;
-	FILE *output;
 	double t = 0, step = 0.001, max = 1;
+	Couchy_coeffs *array = NULL;
 
 	if (gmax < gmin) {
 		fprintf(stderr, "Invalid gammas' values:\n");
@@ -259,24 +277,9 @@ PADIC_ERR solve_problem(
 		return EINVPNTR;
 	}
 
-	// prepare file for results
-	srv_str = (char *)calloc(pathconf(".", _PC_PATH_MAX), sizeof(char));
-	if (srv_str == NULL) {
-		fprintf(stderr, "Cannot alloc memory\n");
-		exit(-1);
-	}
-
-	snprintf(srv_str, 16, "./res/%05d.xls\n", getpid());
-
-	if ((fd = open(srv_str, O_WRONLY | O_CREAT | O_EXCL, 0666)) < 0) {
-		perror("Cannot open file");
-		exit(errno);
-	}
-	free(srv_str);
-
-	if ((output = fdopen(fd, "w")) == NULL) {
-		perror("Cannot open file");
-		exit(errno);
+	if ((output = __prepare_file()) == NULL) {
+		fprintf(stderr, "Cannot open file\n");
+		return EINVPNTR;
 	}
 
 	for (j = gmin; j <= gchy; j++)
@@ -285,7 +288,7 @@ PADIC_ERR solve_problem(
 	array = (Couchy_coeffs *)malloc(array_sz * sizeof(Couchy_coeffs));
 	if (array == NULL) {
 		fprintf(stderr, "Cannot alloc memory\n");
-		exit(-1);
+		return EMALLOC;
 	}
 
 	g_min = gmin;
@@ -302,7 +305,12 @@ PADIC_ERR solve_problem(
 	err = get_integrals(x0, array);
 	if (err != ESUCCESS) {
 		fprintf(stderr, "Failed to count Integrals\n");
-		exit(err);
+		return err;
+	}
+
+	if (cnt != array_sz) {
+		fprintf(stderr, "Wrong calculaton on integrals: #%d, must be #%d\n", cnt, array_sz);
+		return EINVPNTR;
 	}
 
 	step = 0.001;
@@ -314,8 +322,132 @@ PADIC_ERR solve_problem(
 			Sum_Phi += Phi_gnj_t * array[i].Wgnj_x;
 		}
 
-		if (fabs(cimag(Sum_Phi)) > ACCURACY) {
+		if (fabs(cimag(Sum_Phi)) > ACCURACY)
 			fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
+		fprintf(output, "%.03f\t%g\n", t, creal(Sum_Phi));
+
+		if ((max - t < step) && (max < TIME)) {
+			step *= 10;
+			max *= 10;
+		}
+	}
+
+	fflush(output);
+	return 0;
+}
+
+PADIC_ERR count_S_t(
+		double (*rho0)(pa_num *pnum),
+		double (*start_cond0)(pa_num *pnum),
+		int gmin, int gmax, int gchy,
+		pa_num *ini_n, int ini_gamma)
+{
+	int i = 0, j = 0;
+	PADIC_ERR err = ESUCCESS;
+	complex double Sum_Phi = 0, Phi_gnj_t = 0;
+	int array_sz = 0, xs_sz = 0;
+	FILE *output;
+	double t = 0, step = 0.001, max = 1;
+	Couchy_coeffs **arrays = NULL;
+	pa_num *x0 = NULL;
+	pa_num **xs = NULL;
+
+(void)ini_n;
+
+	if (gmax < gmin) {
+		fprintf(stderr, "Invalid gammas' values:\n");
+		fprintf(stderr, "g_min = %d should be ", gmin);
+		fprintf(stderr, "less or equal than g_max = %d\n", gmax);
+		fflush(stderr);
+		return EGAMMAOUT;
+	}
+
+	if (start_cond0 == NULL || rho0 == NULL) {
+		fprintf(stderr, "Invalid pointer to function\n");
+		return EINVPNTR;
+	}
+
+	if ((output = __prepare_file()) == NULL) {
+		fprintf(stderr, "Cannot open file\n");
+		exit(-1);
+	}
+
+	for (j = gmin; j <= gchy; j++)
+		array_sz += qspace_sz(j + 1, gchy + 1) * (P - 1);
+
+	xs_sz = (size_t)qspace_sz(ini_gamma, gmax);
+	xs = (pa_num **)malloc(xs_sz * sizeof(pa_num*));
+	if (xs == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		return EMALLOC;
+	}
+
+	err = gen_quotient_space(xs, ini_gamma, gmax);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid generating qspace\n");
+		return err;
+	}
+
+	arrays = (Couchy_coeffs **)malloc(xs_sz * sizeof(Couchy_coeffs *));
+	if (arrays == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		return EMALLOC;
+	}
+
+	g_min = gmin;
+	g_max = gmax;
+	g_chy = gchy;
+	rho = rho0;
+	start_cond = start_cond0;
+
+	for (j = 0; j < xs_sz; j++) {
+		x0 = (pa_num *)malloc(sizeof(pa_num));
+		if (x0 == NULL) {
+			fprintf(stderr, "Cannot alloc memory\n");
+			return EMALLOC;
+		}
+
+		err = p_gamma_pa_num(x0, xs[i], gmax);
+		if (err != ESUCCESS) {
+			fprintf(stderr, "Invalid multiplication on p-gamma\n");
+			return err;
+		}
+
+		fprintf(stdout, "Get x = %g\n", padic2double(x0));
+		print_pa_num(x0);
+		fprintf(stdout, "gamma\tn\tWgnj(x)\t\tBgnj(x)\t\tCgnj(x)\t\tL(x)\n");
+
+		arrays[j] = (Couchy_coeffs *)malloc(array_sz * sizeof(Couchy_coeffs));
+			if (arrays[j] == NULL) {
+			fprintf(stderr, "Cannot alloc memory\n");
+			return EMALLOC;
+		}
+
+		err = get_integrals(x0, arrays[j]);
+		if (err != ESUCCESS) {
+			fprintf(stderr, "Failed to count Integrals\n");
+			exit(err);
+		}
+
+		if (cnt != array_sz) {
+			fprintf(stderr, "Wrong calculaton on integrals: #%d, must be #%d\n", cnt, array_sz);
+			return EINVPNTR;
+		}
+		cnt = 0;
+		free_pa_num(x0);
+	}
+
+	step = 0.001;
+	max = 1;
+	for (t = step; t <= max; t += step) {
+		Sum_Phi = xs_sz * power(P, (double)gmin);
+		for (j = 0; j < xs_sz; j++) {
+			for (i = 0; i < array_sz; i++) {
+				Phi_gnj_t = arrays[j][i].Agnj_x * exp(creal(arrays[j][i].Lgnj_x) * t);
+				Sum_Phi += Phi_gnj_t * arrays[j][i].Wgnj_x;
+			}
+			if (fabs(cimag(Sum_Phi)) > ACCURACY)
+				fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
 		}
 		fprintf(output, "%.03f\t%g\n", t, creal(Sum_Phi) * power((double)P, -gmax));
 
@@ -326,8 +458,7 @@ PADIC_ERR solve_problem(
 	}
 
 	fflush(output);
-	close(fd);
-
 	return 0;
 }
+
 
