@@ -29,7 +29,7 @@ set key bottom right
 
 set xlabel 't'
 set ylabel 'Psi(x, t)'
-set xrange [0:10]
+set xrange [0:1]
 set yrange [0:0.02]
 
 

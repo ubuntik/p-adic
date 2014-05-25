@@ -7,9 +7,13 @@
 
 #include <cauchy.h>
 
+#define ALPHA 2
+#define ACC TRUE
+
 #define TIME 1000000
 #define ACCURACY 0.0000000001
 #define PRNT_CMX(x) (fabs(x) > ACCURACY ? x : 0)
+#define PP(a) power((double)P, (double)a)
 
 typedef struct Couchy_coeffs {
 	int gamma;
@@ -33,6 +37,10 @@ double (*start_cond)(pa_num *pnum) = NULL;
 int g_min = 0;
 int g_max = -1;
 int g_chy = -1;
+
+#ifdef ACC
+double *lambda = NULL;
+#endif
 
 PADIC_ERR do_for_j(int gamma, pa_num *n, int j, pa_num *x, Couchy_coeffs *array)
 {
@@ -250,6 +258,69 @@ FILE *__prepare_file(const char *sfx)
 	return output;
 }
 
+#ifdef ACC
+void __get_lambdas()
+{
+	int l_sz = g_chy - g_min + 1;
+	int R = -g_min;
+	int r = -g_chy;
+	int gamma = 0;
+	lambda = (double *)malloc(l_sz * sizeof(double));
+	for (gamma = r; gamma <= R; gamma++) {
+		lambda[gamma - r] =	- PP(-ALPHA * gamma) *
+			((double)(PP(ALPHA) - (1.0/P)) / (double)(PP(ALPHA) - 1))
+					+ PP(-ALPHA * R) *
+			((double)(1 - (1.0/P)) / (double)(PP(ALPHA) - 1));
+	}
+}
+
+int __p_norm_power(pa_num *pa)
+{
+	int i = 0, res = INT_MAX;
+	for (i = pa->g_min; i <= pa->g_max; i++) {
+		if (get_x_by_gamma(pa, i) == 0) {
+			continue;
+		} else {
+			res = i;
+			break;
+		}
+	}
+	if (res == INT_MAX)
+		return 0;
+	return -res;
+}
+
+double __get_accurate_value(pa_num *x, double t)
+{
+	double ret = 0;
+	int nu = __p_norm_power(x);
+	int R = -g_min;
+	int r = -g_chy;
+	int gamma = 0;
+
+	__get_lambdas();
+	for (gamma = r; gamma <= R; gamma++)
+		ret += PP(-gamma) * exp(lambda[gamma - r] * t);
+	ret *= (P - 1);
+	ret += PP(-R);
+
+	if (nu <= 0)
+		return ret;
+
+	if (((nu + 1) < r) || ((nu + 1) > R)) {
+		fprintf(stderr, ">>> SMTH WRONG with Accurate solution nu = %d\n", nu);
+		return -1;
+	}
+	ret = 0;
+	for (gamma = nu + 1; gamma <= R; gamma++)
+		ret += PP(-gamma) * exp(lambda[gamma - r] * t);
+	ret *= (P - 1);
+	ret += PP(-R);
+	ret -= PP(nu) * exp(lambda[nu - r] * t);
+	return ret;
+}
+#endif // ACC
+
 PADIC_ERR solve_problem(
 		double (*rho0)(pa_num *pnum),
 		double (*start_cond0)(pa_num *pnum),
@@ -329,9 +400,14 @@ PADIC_ERR solve_problem(
 
 		if (fabs(cimag(Sum_Phi)) > ACCURACY)
 			fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
-		fprintf(output, "%.03f\t%g\n", t, creal(Sum_Phi));
-		fprintf(lnout, "%.03f\t%g\n", log(t), log(creal(Sum_Phi)));
-
+#ifdef ACC
+		double acc = __get_accurate_value(x0, t);
+		fprintf(output, "%.03g\t%g\t%g\n", t, creal(Sum_Phi), acc);
+		fprintf(lnout, "%.03g\t%g\t%g\n", log(t), log(creal(Sum_Phi)), log(acc));
+#else
+		fprintf(output, "%.03g\t%g\n", t, creal(Sum_Phi));
+		fprintf(lnout, "%.03g\t%g\n", log(t), log(creal(Sum_Phi)));
+#endif
 		if ((max - t < step) && (max < TIME)) {
 			step *= 10;
 			max *= 10;
@@ -352,7 +428,8 @@ PADIC_ERR count_S_t(
 	PADIC_ERR err = ESUCCESS;
 	complex double Sum_Phi = 0, Phi_gnj_t = 0;
 	int array_sz = 0, xs_sz = 0;
-	FILE *output;
+//	FILE *output;
+	FILE *lnout;
 	double t = 0, step = 0.001, max = 1;
 	Couchy_coeffs **arrays = NULL;
 	pa_num *x0 = NULL;
@@ -373,13 +450,27 @@ PADIC_ERR count_S_t(
 		return EINVPNTR;
 	}
 
+/*
 	if ((output = __prepare_file("pl")) == NULL) {
 		fprintf(stderr, "Cannot open file\n");
-		exit(-1);
+		return EINVPNTR;
 	}
+*/
+
+	if ((lnout = __prepare_file("ln")) == NULL) {
+		fprintf(stderr, "Cannot open file\n");
+		return EINVPNTR;
+	}
+
 
 	for (j = gmin; j <= gchy; j++)
 		array_sz += qspace_sz(j + 1, gchy + 1) * (P - 1);
+
+	arrays = (Couchy_coeffs **)malloc(xs_sz * sizeof(Couchy_coeffs *));
+	if (arrays == NULL) {
+		fprintf(stderr, "Cannot alloc memory\n");
+		return EMALLOC;
+	}
 
 	xs_sz = (size_t)qspace_sz(ini_gamma, gmax);
 	xs = (pa_num **)malloc(xs_sz * sizeof(pa_num*));
@@ -392,12 +483,6 @@ PADIC_ERR count_S_t(
 	if (err != ESUCCESS) {
 		fprintf(stderr, "Involid generating qspace\n");
 		return err;
-	}
-
-	arrays = (Couchy_coeffs **)malloc(xs_sz * sizeof(Couchy_coeffs *));
-	if (arrays == NULL) {
-		fprintf(stderr, "Cannot alloc memory\n");
-		return EMALLOC;
 	}
 
 	g_min = gmin;
@@ -413,7 +498,7 @@ PADIC_ERR count_S_t(
 			return EMALLOC;
 		}
 
-		err = p_gamma_pa_num(x0, xs[i], gmax);
+		err = p_gamma_pa_num(x0, xs[j], gmax);
 		if (err != ESUCCESS) {
 			fprintf(stderr, "Invalid multiplication on p-gamma\n");
 			return err;
@@ -455,7 +540,8 @@ PADIC_ERR count_S_t(
 			if (fabs(cimag(Sum_Phi)) > ACCURACY)
 				fprintf(stderr, ">>> Sum_Phi <<< Something wrong!!!\n");
 		}
-		fprintf(output, "%.03f\t%g\n", t, creal(Sum_Phi) * power((double)P, -gmax));
+//		fprintf(output, "%.03f\t%g\n", t, creal(Sum_Phi) * power((double)P, -gmax));
+		fprintf(lnout, "%.03f\t%g\n", log(t), log(creal(Sum_Phi) * power((double)P, -gmax)));
 
 		if ((max - t < step) && (max < TIME)) {
 			step *= 10;
@@ -463,7 +549,7 @@ PADIC_ERR count_S_t(
 		}
 	}
 
-	fflush(output);
+	fflush(lnout);
 	return 0;
 }
 
