@@ -80,33 +80,38 @@ double wrapped_indicator(pa_num *pa)
 int main()
 {
 	PADIC_ERR err = ESUCCESS;
-
-	int ini_gamma = 0;
-	pa_num *ini_n = NULL;
+	pa_num *x0 = NULL;
 
 	if (gmax <= gchy) {
 		printf("gmax should be more then gchy\n");
 		return -1;
 	}
 
-	ini_n = (pa_num *)malloc(sizeof(pa_num));
-	if (ini_n == NULL) {
-		fprintf(stderr, "Cannot alloc memory\n");
+	x0 = (pa_num *)malloc(sizeof(pa_num));
+	if (x0 == NULL) {
+		fprintf(stderr, "Not enough memory");
 		return -1;
 	}
 
-	err = init_pa_num(ini_n, gmin, gmax);
+	err = init_pa_num(x0, gmin, gmax);
 	if (err != ESUCCESS) {
 		fprintf(stderr, "Involid init number\n");
 		exit(err);
 	}
 
-	err = solve_problem(function, wrapped_indicator, gmin, gmax, gchy, ini_gamma, ini_n);
+	err = set_x_by_gamma(x0, -1, 1);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Involid init number\n");
+		exit(err);
+	}
+
+	err = solve_problem(function, wrapped_indicator, gmin, gmax, gchy, x0);
 	if (err != ESUCCESS)
 		printf("FAILED\n");
 	else
 		printf("OK\n");
 
+	free_pa_num(x0);
 	return 0;
 }
 

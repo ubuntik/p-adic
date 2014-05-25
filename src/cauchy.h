@@ -10,4 +10,7 @@ PADIC_ERR solve_problem(
                 double (*rho)(pa_num *pnum),
                 double (*start_cond)(pa_num *pnum),
                 int gmin, int gmax, int gchy,
-		int ini_gamma, pa_num *ini_n);
+		pa_num * x0);
+
+// TODO
+// PADIC_ERR count_S_t(ini_n, ini_gamma)
