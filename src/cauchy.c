@@ -316,7 +316,7 @@ double __get_accurate_value(pa_num *x, double t)
 		ret += PP(-gamma) * exp(lambda[gamma - r] * t);
 	ret *= (P - 1);
 	ret += PP(-R);
-	ret -= PP(nu) * exp(lambda[nu - r] * t);
+	ret -= PP(-nu) * exp(lambda[nu - r] * t);
 	return ret;
 }
 #endif // ACC

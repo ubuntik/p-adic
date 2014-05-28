@@ -10,7 +10,7 @@
 //#define G_MAX (2)
 
 #define G_MIN (-3)
-#define G_CHY (1)
+#define G_CHY (-1)
 #define G_MAX (0)
 
 #define ALPHA 2
@@ -23,6 +23,8 @@ static const int gchy = G_CHY;
 double function(pa_num* pa)
 {
 	double ret = 0;
+	int gamma_cut = gchy;
+
 	if (pa == NULL) {
 		fprintf(stderr, "Involid pointer\n");
 		return -1;
@@ -30,20 +32,20 @@ double function(pa_num* pa)
 
 	if (ALPHA == 1) {
 		ret = 1.0 / (p_norm(pa) * p_norm(pa));
-		return (p_norm(pa) <= power(P, -gchy)) ? \
-			power(P, 2 * gchy) : ret;
+		return (p_norm(pa) <= power(P, -gamma_cut)) ? \
+			power(P, 2 * gamma_cut) : ret;
 	} else if (ALPHA == 2) {
 		ret = 1.0 / (p_norm(pa) * p_norm(pa) * p_norm(pa));
-		return (p_norm(pa) <= power(P, -gchy)) ? \
-			power(P, 3 * gchy) : ret;
+		return (p_norm(pa) <= power(P, -gamma_cut)) ? \
+			power(P, 3 * gamma_cut) : ret;
 	} else if (ALPHA == 3) {
 		ret = 1.0 / (p_norm(pa) * p_norm(pa) * p_norm(pa) * p_norm(pa));
-		return (p_norm(pa) <= power(P, -gchy)) ? \
-			power(P, 4 * gchy) : ret;
+		return (p_norm(pa) <= power(P, -gamma_cut)) ? \
+			power(P, 4 * gamma_cut) : ret;
 	} else if (ALPHA == 4) {
 		ret = 1.0 / (p_norm(pa) * p_norm(pa) * p_norm(pa) * p_norm(pa) * p_norm(pa));
-		return (p_norm(pa) <= power(P, -gchy)) ? \
-			power(P, 5 * gchy) : ret;
+		return (p_norm(pa) <= power(P, -gamma_cut)) ? \
+			power(P, 5 * gamma_cut) : ret;
 	} else {
 		fprintf(stderr, "UNDEFINED Alpha!\n");
 		return 1;
@@ -96,13 +98,13 @@ int main()
 		fprintf(stderr, "Involid init number\n");
 		exit(err);
 	}
-
+/*
 	err = set_x_by_gamma(x0, -1, 1);
 	if (err != ESUCCESS) {
 		fprintf(stderr, "Involid init number\n");
 		exit(err);
 	}
-
+*/
 //	x0->sign = reverse_sign(x0->sign);
 
 	err = solve_problem(function, wrapped_indicator, gmin, gmax, gchy, x0);
