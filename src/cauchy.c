@@ -7,9 +7,6 @@
 
 #include <cauchy.h>
 
-#define ALPHA 2
-#define ACC TRUE
-
 #define TIME 1000000
 #define ACCURACY 0.0000000001
 #define PRNT_CMX(x) (fabs(x) > ACCURACY ? x : 0)
@@ -26,19 +23,24 @@ typedef struct Couchy_coeffs {
 	complex double Lgnj_x;
 } Couchy_coeffs;
 
-// Bgnj_x = Integral(rho(x-y)*WAVEgnj(y)dy) by Qp
-// Cgnj_x = Integral(rho(x-y)*WAVEgnj(x)dy) by Qp
+// Bgnj_x = Integral(rho_backward(x,y)*WAVEgnj(y)dy) by Qp
+// Cgnj_x = Integral(rho_forward(x,y)*WAVEgnj(x)dy) by Qp
 // Bgnj_x - Cgnj_x
 
 int cnt = 0;
 
-double (*rho)(pa_num *pnum) = NULL;
+double (*rho)(pa_num *x) = NULL;
+double (*rho_backward)(pa_num *x, pa_num *y) = NULL;
+double (*rho_forward)(pa_num *x, pa_num *y) = NULL;
 double (*start_cond)(pa_num *pnum) = NULL;
 int g_min = 0;
 int g_max = -1;
 int g_chy = -1;
 
+//#define ACC TRUE
+
 #ifdef ACC
+#define ALPHA 2
 double *lambda = NULL;
 #endif
 
@@ -47,7 +49,7 @@ PADIC_ERR do_for_j(int gamma, pa_num *n, int j, pa_num *x, Couchy_coeffs *array)
 	PADIC_ERR err = ESUCCESS;
 	int qs_sz = 0, i = 0;
 	pa_num **qs = NULL;
-	pa_num *pa = NULL, *res = NULL;
+	pa_num *pa = NULL;
 	double B_img = 0, B_rez = 0, B_fun = 0;
 	double C_img = 0, C_rez = 0, C_fun = 0;
 	double A_img = 0, A_rez = 0, A_fun = 0;
@@ -93,24 +95,12 @@ PADIC_ERR do_for_j(int gamma, pa_num *n, int j, pa_num *x, Couchy_coeffs *array)
 			return err;
 		}
 
-		// x - y
-		res = (pa_num *)malloc(sizeof(pa_num));
-		if (res == NULL) {
-			fprintf(stderr, "Cannot alloc memory\n");
-			return EMALLOC;
-		}
-		err = sub(res, x, pa);
-		if (err != ESUCCESS) {
-			fprintf(stderr, "Involid subtraction\n");
-			return err;
-		}
-
-		if ((rho(pa) == INFINITY) || (rho(res) == INFINITY)) {
+		if ((rho_backward(x, pa) == INFINITY) || (rho_forward(x, pa) == INFINITY)) {
 			fprintf(stderr, "AAAA!!! We are going to infinity!\n");
 			return EINVPNTR;
 		} else {
-			B_fun = rho(res);
-			C_fun = rho(res);
+			B_fun = rho_backward(x, pa);
+			C_fun = rho_forward(x, pa);
 			A_fun = start_cond(pa);
 
 			if (creal(array[cnt].Wgnj_x) != 0) {
@@ -123,7 +113,6 @@ PADIC_ERR do_for_j(int gamma, pa_num *n, int j, pa_num *x, Couchy_coeffs *array)
 			A_img += cimag(wavelet(pa, n, -gamma, j)) * A_fun;
 		}
 		free_pa_num(pa);
-		free_pa_num(res);
 		free_pa_num(qs[i]);
 	}
 
@@ -154,7 +143,7 @@ PADIC_ERR do_for_n(int gamma, pa_num *n, pa_num *x, Couchy_coeffs *array)
 	int j = 0;
 	PADIC_ERR err = ESUCCESS;
 
-	if (start_cond == NULL || rho == NULL) {
+	if (start_cond == NULL || rho_backward == NULL || rho_forward == NULL) {
 		fprintf(stderr, "Invalid pointer to function\n");
 		return EINVPNTR;
 	}
@@ -197,7 +186,7 @@ PADIC_ERR get_integrals(pa_num *x, Couchy_coeffs *array)
 	PADIC_ERR err = ESUCCESS;
 	pa_num **ns = NULL;
 
-	if (start_cond == NULL || rho == NULL) {
+	if (start_cond == NULL || rho_backward == NULL || rho_forward == NULL) {
 		fprintf(stderr, "Invalid pointer to function\n");
 		return EINVPNTR;
 	}
@@ -322,7 +311,8 @@ double __get_accurate_value(pa_num *x, double t)
 #endif // ACC
 
 PADIC_ERR solve_problem(
-		double (*rho0)(pa_num *pnum),
+		double (*rho_bw)(pa_num *x, pa_num *y),
+		double (*rho_fw)(pa_num *x, pa_num *y),
 		double (*start_cond0)(pa_num *pnum),
 		int gmin, int gmax, int gchy,
 		pa_num *x0)
@@ -343,7 +333,7 @@ PADIC_ERR solve_problem(
 		return EGAMMAOUT;
 	}
 
-	if (start_cond0 == NULL || rho0 == NULL) {
+	if (start_cond0 == NULL || rho_bw == NULL || rho_fw == NULL) {
 		fprintf(stderr, "Invalid pointer to function\n");
 		return EINVPNTR;
 	}
@@ -370,7 +360,8 @@ PADIC_ERR solve_problem(
 	g_min = gmin;
 	g_max = gmax;
 	g_chy = gchy;
-	rho = rho0;
+	rho_backward = rho_bw;
+	rho_forward = rho_fw;
 	start_cond = start_cond0;
 
 	fprintf(stdout, "Get x = %g\n", padic2double(x0));

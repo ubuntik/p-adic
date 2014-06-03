@@ -5,10 +5,6 @@
 
 #include <cauchy.h>
 
-//#define G_MIN (-7)
-//#define G_CHY (0)
-//#define G_MAX (2)
-
 #define G_MIN (-3)
 #define G_CHY (-1)
 #define G_MAX (0)
@@ -20,13 +16,95 @@ static const int gmax = G_MAX;
 static const int gchy = G_CHY;
 
 // function should be got fron func_args
-double function(pa_num* pa)
+
+double rho_asterisk(pa_num *z)
+{
+	return exp(-2 * p_norm(z));
+}
+
+double rho_a(pa_num *x, pa_num *y)
+{
+	PADIC_ERR err = ESUCCESS;
+	pa_num *z = NULL;
+
+	z = (pa_num *)malloc(sizeof(pa_num));
+	if (z == NULL) {
+		fprintf(stderr, "Not enough memory");
+		return -1;
+	}
+
+	err = sub(z, x, y);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Failed rho_backward\n");
+		return -1;
+	}
+
+	return exp(-2*p_norm(z));
+}
+
+
+double rho_bw(pa_num *x, pa_num *y)
+{
+	PADIC_ERR err = ESUCCESS;
+	pa_num *z = NULL;
+
+	z = (pa_num *)malloc(sizeof(pa_num));
+	if (z == NULL) {
+		fprintf(stderr, "Not enough memory");
+		return -1;
+	}
+
+	err = sub(z, x, y);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Failed rho_backward\n");
+		return -1;
+	}
+
+	//return rho_asterisk(z);
+	return exp(p_norm(y)) * rho_asterisk(z);
+}
+
+double rho_fw(pa_num *x, pa_num *y)
+{
+	PADIC_ERR err = ESUCCESS;
+	pa_num *z = NULL;
+
+	z = (pa_num *)malloc(sizeof(pa_num));
+	if (z == NULL) {
+		fprintf(stderr, "Not enough memory");
+		return -1;
+	}
+
+	err = sub(z, x, y);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Failed rho_forward\n");
+		return -1;
+	}
+
+	return exp(p_norm(x)) * rho_asterisk(z);
+}
+
+double function(pa_num *x, pa_num *y)
 {
 	double ret = 0;
 	int gamma_cut = gchy;
+	PADIC_ERR err = ESUCCESS;
+	pa_num *pa = NULL;
 
-	if (pa == NULL) {
+	if (x == NULL || y == NULL) {
 		fprintf(stderr, "Involid pointer\n");
+		return -1;
+	}
+
+	pa = (pa_num *)malloc(sizeof(pa_num));
+	if (pa == NULL) {
+		fprintf(stderr, "Not enough memory");
+		return -1;
+	}
+
+	err = sub(pa, x, y);
+	if (err != ESUCCESS) {
+		fprintf(stderr, "Failed rho_forward\n");
 		return -1;
 	}
 
@@ -98,16 +176,18 @@ int main()
 		fprintf(stderr, "Involid init number\n");
 		exit(err);
 	}
-/*
-	err = set_x_by_gamma(x0, -1, 1);
+
+	err = set_x_by_gamma(x0, -2, 2);
 	if (err != ESUCCESS) {
 		fprintf(stderr, "Involid init number\n");
 		exit(err);
 	}
-*/
+
 //	x0->sign = reverse_sign(x0->sign);
 
-	err = solve_problem(function, wrapped_indicator, gmin, gmax, gchy, x0);
+	err = solve_problem(rho_bw, rho_fw, wrapped_indicator,
+	//err = solve_problem(rho_a, rho_a, wrapped_indicator,
+				gmin, gmax, gchy, x0);
 	if (err != ESUCCESS)
 		printf("FAILED\n");
 	else
