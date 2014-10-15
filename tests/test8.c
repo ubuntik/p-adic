@@ -186,7 +186,7 @@ int main()
 //	x0->sign = reverse_sign(x0->sign);
 
 	err = solve_problem(rho_bw, rho_fw, wrapped_indicator,
-	//err = solve_problem(rho_a, rho_a, wrapped_indicator,
+//	err = solve_problem(function, function, wrapped_indicator,
 				gmin, gmax, gchy, x0);
 	if (err != ESUCCESS)
 		printf("FAILED\n");
