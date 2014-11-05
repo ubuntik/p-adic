@@ -11,7 +11,7 @@ PADIC_ERR solve_problem(
                 double (*rho_fw)(pa_num *x, pa_num *y),
                 double (*start_cond)(pa_num *pnum),
                 int gmin, int gmax, int gchy,
-		pa_num *x0);
+		pa_num *ini_n, int ini_gamma);
 
 
 PADIC_ERR count_S_t(
