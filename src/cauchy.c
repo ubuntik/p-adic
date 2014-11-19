@@ -68,11 +68,11 @@ PADIC_ERR do_for_j(Matrix_struct *mst)
 	for (i = 0; i < mst->xs_sz; i++) {
 		x = mst->xs[i];
 
-/*
+
 		fprintf(stdout, "Get x = %g\n", padic2double(x));
 		print_pa_num(x);
 		fprintf(stdout, "gamma\tn\tj\tWgnj(x)\t\tBgnj(x)\t\tCgnj(x)\t\tL(x)\n");
-*/
+
 
 		qs_sz = (size_t)qspace_sz(g_min, g_max);
 		qs = (pa_num **)malloc(qs_sz * sizeof(pa_num *));
@@ -134,14 +134,14 @@ PADIC_ERR do_for_j(Matrix_struct *mst)
 		else
 			mst->coeff[i].Lgnj_x = 0;
 
-/*
+
 		fprintf(stdout, "%d\t%.04g\t%d\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\t%.04g\n",
 			gamma, padic2double(n), j,
 			PRNT_CMX(creal(mst->coeff[i].Wgnj_x)), PRNT_CMX(cimag(mst->coeff[i].Wgnj_x)),
 			PRNT_CMX(creal(mst->coeff[i].Bgnj_x)), PRNT_CMX(cimag(mst->coeff[i].Bgnj_x)),
 			PRNT_CMX(creal(mst->coeff[i].Cgnj_x)), PRNT_CMX(cimag(mst->coeff[i].Cgnj_x)),
 			PRNT_CMX(creal(mst->coeff[i].Lgnj_x)), PRNT_CMX(cimag(mst->coeff[i].Lgnj_x)));
-*/
+
 
 	}
 	return err;
@@ -160,16 +160,24 @@ PADIC_ERR count_matrix(Matrix_struct *msts, int array_sz,
 	for (i = 0; i < array_sz; i++) {
 		for (j = 0; j < array_sz; j++) {
 			for (k = 0; k < msts[i].xs_sz; k++) {
-				A_rez += creal(wavelet(msts[j].xs[k], msts[i].n,
+				A_rez +=
+					creal(wavelet(msts[i].xs[k], msts[i].n,
+		//			creal(wavelet(msts[j].xs[k], msts[i].n,
 					-msts[i].gamma, msts[i].j)
 					* msts[j].coeff[k].Bgnj_x);
-				A_img += cimag(wavelet(msts[j].xs[k], msts[i].n,
+				A_img +=
+					cimag(wavelet(msts[i].xs[k], msts[i].n,
+		//			cimag(wavelet(msts[j].xs[k], msts[i].n,
 					-msts[i].gamma, msts[i].j)
 					* msts[j].coeff[k].Bgnj_x);
-				B_rez += creal(wavelet(msts[j].xs[k], msts[i].n,
+				B_rez +=
+					creal(wavelet(msts[i].xs[k], msts[i].n,
+		//			creal(wavelet(msts[j].xs[k], msts[i].n,
 					-msts[i].gamma, msts[i].j)
 					* msts[j].coeff[k].Cgnj_x);
-				B_img += cimag(wavelet(msts[j].xs[k], msts[i].n,
+				B_img +=
+					cimag(wavelet(msts[i].xs[k], msts[i].n,
+		//			cimag(wavelet(msts[j].xs[k], msts[i].n,
 					-msts[i].gamma, msts[i].j)
 					* msts[j].coeff[k].Cgnj_x);
 			}
@@ -194,8 +202,7 @@ PADIC_ERR solve_problem(
 		double (*rho_bw)(pa_num *x, pa_num *y),
 		double (*rho_fw)(pa_num *x, pa_num *y),
 		double (*start_cond0)(pa_num *pnum),
-		int gmin, int gmax, int gchy,
-		pa_num *ini_n, int ini_gamma)
+		int gmin, int gmax, int gchy)
 {
 	int i = 0, j = 0, gamma = 0;
 	PADIC_ERR err = ESUCCESS;
@@ -228,14 +235,14 @@ PADIC_ERR solve_problem(
 		return EMALLOC;
 	}
 
-	xs_sz = (size_t)qspace_sz(ini_gamma, gmax);
+	xs_sz = (size_t)qspace_sz(gmin, gmax);
 	xs = (pa_num **)malloc(xs_sz * sizeof(pa_num*));
 	if (xs == NULL) {
 		fprintf(stderr, "Cannot alloc memory\n");
 		return EMALLOC;
 	}
 
-	err = gen_quotient_space(xs, ini_gamma - gmax - 1, -1);
+	err = gen_quotient_space_gamma(xs, gmin, gmax);
 	if (err != ESUCCESS) {
 		fprintf(stderr, "Involid generating qspace\n");
 		return err;

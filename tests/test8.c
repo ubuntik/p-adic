@@ -195,9 +195,9 @@ int main()
 		return err;
 	}
 
-	err = solve_problem(rho_bw, rho_fw, wrapped_indicator,
-//	err = solve_problem(function, function, wrapped_indicator,
-				gmin, gmax, gchy, ini_n, ini_gamma);
+//	err = solve_problem(rho_bw, rho_fw, wrapped_indicator,
+	err = solve_problem(function, function, wrapped_indicator,
+				gmin, gmax, gchy);
 	if (err != ESUCCESS)
 		printf("FAILED\n");
 	else

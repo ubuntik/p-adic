@@ -194,6 +194,56 @@ PADIC_ERR gen_quotient_space(pa_num **qs, int g_min, int g_max)
 	return ESUCCESS;
 }
 
+PADIC_ERR gen_quotient_space_gamma(pa_num **qs, int g_min, int g_max)
+{
+	size_t qs_sz = 0;
+	int div = 0, n = 0, i = 0, j = 0, k = 0, l = 0, ngrp = 0;
+	PADIC_ERR err = ESUCCESS;
+	if (g_max < g_min) {
+		fprintf(stderr, "Invalid gammas' values:\n");
+		fprintf(stderr, "g_min = %d should be ", g_min);
+		fprintf(stderr, "less or equal than g_max = %d\n", g_max);
+		fflush(stderr);
+		return EGAMMAOUT;
+	}
+
+	qs_sz = (size_t)qspace_sz(g_min, g_max);
+
+	for (i = 0; i < qs_sz; i++) {
+		qs[i] = (pa_num *)malloc(sizeof(pa_num));
+		if (qs[i] == NULL) {
+			fprintf(stderr, "Cannot alloc memory\n");
+			return EINVPNTR;
+		}
+		err = init_pa_num(qs[i], g_min, g_max);
+		if (err != ESUCCESS) {
+			fprintf(stderr, "Involid init of number\n");
+			return err;
+		}
+	}
+
+	div = 1;
+	for (k = g_max - 1; k >= g_min; k--) {
+		n = 0;
+		ngrp = qs_sz / (div * P) ;
+		for (j = 0; j < ngrp; j++) {
+			for (i = 0; i < P; i++) {
+				for (l = 0; l < div; l++) {
+					err = set_x_by_gamma(qs[n++], k, i);
+					if (err != ESUCCESS) {
+						fprintf(stderr,
+							"Involid setting\n");
+						return err;
+					}
+				}
+			}
+		}
+		div = div * P;
+	}
+
+	return ESUCCESS;
+}
+
 PADIC_ERR p_gamma_pa_num(pa_num *res, pa_num *pa, int gamma)
 {
 	int i = 0;

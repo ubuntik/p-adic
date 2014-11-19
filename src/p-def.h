@@ -7,7 +7,7 @@
 #include <complex.h>
 #include <stdint.h>
 
-#define P 3
+#define P 2
 #define PI 3.14159265358979323846
 
 //Workaround:
@@ -74,6 +74,8 @@ PADIC_ERR set_x_by_gamma(pa_num* pa, int gamma, int x);
 long qspace_sz(int g_min, int g_max);
 
 PADIC_ERR gen_quotient_space(pa_num **qs, int g_min, int g_max);
+
+PADIC_ERR gen_quotient_space_gamma(pa_num **qs, int g_min, int g_max);
 
 PADIC_ERR p_gamma_pa_num(pa_num *res, pa_num *pa, int gamma);
 
