@@ -5,11 +5,12 @@
 
 #include <cauchy.h>
 
-#define G_MIN (0)
-#define G_CHY (1)
-#define G_MAX (2)
+#define G_MIN (-1)
+#define G_CHY (0)
+#define G_MAX (1)
 
 #define ALPHA 2
+#define BETA 0
 
 static const int gmin = G_MIN;
 static const int gmax = G_MAX;
@@ -21,71 +22,31 @@ int ini_gamma = 0;
 
 // function should be got fron func_args
 
-double rho_asterisk(pa_num *z)
+double delta_func(pa_num *x, pa_num *y)
 {
-	return exp(-2 * p_norm(z));
-}
+	double ret = 0;
+	double norm_x = 0;
+	double norm_y = 0;
+	int gamma_cut = gchy;
 
-double rho_a(pa_num *x, pa_num *y)
-{
-	PADIC_ERR err = ESUCCESS;
-	pa_num *z = NULL;
-
-	z = (pa_num *)malloc(sizeof(pa_num));
-	if (z == NULL) {
-		fprintf(stderr, "Not enough memory");
+	if (x == NULL || y == NULL) {
+		fprintf(stderr, "Involid pointer\n");
 		return -1;
 	}
 
-	err = sub(z, x, y);
-	if (err != ESUCCESS) {
-		fprintf(stderr, "Failed rho_backward\n");
-		return -1;
-	}
+	norm_x = p_norm(x);
+	norm_y = p_norm(y);
 
-	return exp(-2*p_norm(z));
-}
+	if (norm_x == 0 && norm_y == 0)
+		return 1;
+	if (norm_y == 0)
+		norm_y = -gamma_cut;
+	if (norm_x == 0)
+		norm_x = -gamma_cut;
 
+	ret = norm_x / norm_y;
 
-double rho_bw(pa_num *x, pa_num *y)
-{
-	PADIC_ERR err = ESUCCESS;
-	pa_num *z = NULL;
-
-	z = (pa_num *)malloc(sizeof(pa_num));
-	if (z == NULL) {
-		fprintf(stderr, "Not enough memory");
-		return -1;
-	}
-
-	err = sub(z, x, y);
-	if (err != ESUCCESS) {
-		fprintf(stderr, "Failed rho_backward\n");
-		return -1;
-	}
-
-	//return rho_asterisk(z);
-	return exp(p_norm(y)) * rho_asterisk(z);
-}
-
-double rho_fw(pa_num *x, pa_num *y)
-{
-	PADIC_ERR err = ESUCCESS;
-	pa_num *z = NULL;
-
-	z = (pa_num *)malloc(sizeof(pa_num));
-	if (z == NULL) {
-		fprintf(stderr, "Not enough memory");
-		return -1;
-	}
-
-	err = sub(z, x, y);
-	if (err != ESUCCESS) {
-		fprintf(stderr, "Failed rho_forward\n");
-		return -1;
-	}
-
-	return exp(p_norm(x)) * rho_asterisk(z);
+	return power(ret, -BETA);
 }
 
 double function(pa_num *x, pa_num *y)
@@ -116,6 +77,10 @@ double function(pa_num *x, pa_num *y)
 		ret = 1.0 / (p_norm(pa) * p_norm(pa));
 		return (p_norm(pa) <= power(P, -gamma_cut)) ? \
 			power(P, 2 * gamma_cut) : ret;
+	} else if (ALPHA == 1.5) {
+		ret = 1.0 / (p_norm(pa) * p_norm(pa) * sqrt(p_norm(pa)));
+		return (p_norm(pa) <= power(P, -gamma_cut)) ? \
+			power(P, 2.5 * gamma_cut) : ret;
 	} else if (ALPHA == 2) {
 		ret = 1.0 / (p_norm(pa) * p_norm(pa) * p_norm(pa));
 		return (p_norm(pa) <= power(P, -gamma_cut)) ? \
@@ -133,6 +98,34 @@ double function(pa_num *x, pa_num *y)
 		return 1;
 	}
 	// p, - (alfa + 1) * (-gmax)
+}
+
+double rho_bw(pa_num *x, pa_num *y)
+{
+	double norm_x = 0;
+	double norm_y = 0;
+
+	norm_x = p_norm(x);
+	norm_y = p_norm(y);
+
+	return function(x, y) * ((norm_y >= norm_x) ? 1 : delta_func(x, y));
+}
+
+double rho_fw(pa_num *x, pa_num *y)
+{
+	double norm_x = 0;
+	double norm_y = 0;
+
+	norm_x = p_norm(x);
+	norm_y = p_norm(y);
+
+/*
+	fprintf(stderr, ">>> norm x = %g, y = %g\n", norm_x, norm_y);
+	fprintf(stderr, ">>> function = %g\n", function(x, y));
+	fprintf(stderr, ">>> delta_func = %g\n", delta_func(y, x));
+*/
+
+	return function(x, y) * ((norm_x >= norm_y) ? 1 : delta_func(y, x));
 }
 
 double wrapped_indicator(pa_num *pa)
@@ -195,8 +188,8 @@ int main()
 		return err;
 	}
 
-//	err = solve_problem(rho_bw, rho_fw, wrapped_indicator,
-	err = solve_problem(function, function, wrapped_indicator,
+	err = solve_problem(rho_bw, rho_fw, wrapped_indicator,
+//	err = solve_problem(function, function, wrapped_indicator,
 				gmin, gmax, gchy);
 	if (err != ESUCCESS)
 		printf("FAILED\n");
