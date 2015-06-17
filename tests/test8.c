@@ -5,7 +5,7 @@
 
 #include <cauchy.h>
 
-#define G_MIN (-1)
+#define G_MIN (-5)
 #define G_CHY (0)
 #define G_MAX (1)
 

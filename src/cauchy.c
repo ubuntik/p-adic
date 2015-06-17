@@ -7,10 +7,19 @@
 
 #include <cauchy.h>
 
-#define TIME 100
+#include </opt/NAG/clmi623dgl/include/nag.h>
+#include </opt/NAG/clmi623dgl/include/nag_stdlib.h>
+#include </opt/NAG/clmi623dgl/include/nagf02.h>
+
+
+#define TIME 10000
 #define ACCURACY 0.0000000001
 #define PRNT_CMX(x) (fabs(x) > ACCURACY ? x : 0)
 #define PP(a) power((double)P, (double)a)
+
+#define COMPLEX(A) A.re, A.im
+#define A(I, J)    a[(I) *tda + J]
+#define V(I, J)    v[(I) *tdv + J]
 
 typedef struct Matrix_struct {
 	pa_num *x;
@@ -38,53 +47,43 @@ int g_min = 0;
 int g_max = -1;
 int g_chy = -1;
 
-extern void dgeevx( char* blanc, char* jobvl, char* jobvr, char* sense,
-			int* n, double* a, int* lda, double* wr, double* wi,
-			double* vl, int* ldvl, double* vr, int* ldvr,
-			int ilo, int ihi, double *scale, double* abnrm, double* rconde, double* rcondv,
-			double* work, int* lwork, int* iwork, int* info );
-extern void dgeev( char* jobvl, char* jobvr,
-			int* n, double* a, int* lda, double* wr, double* wi,
-			double* vl, int* ldvl, double* vr, int* ldvr,
-			double* work, int* lwork, int* info );
-extern void print_eigenvalues( char* desc, int n, double* wr, double* wi );
-extern void print_eigenvectors( char* desc, int n, double* wi, double* v, int ldv );
+int find_eingens(int array_sz, double* a, double* wr, double *wi, double *vr)
+{
+	Complex *r = 0, *v = 0;
+	Integer i, *iter = 0, j, n = array_sz, tda, tdv;
+	NagError fail;
 
-int find_eingens(int array_sz, double* a, double* wr, double *wi, double *vr) {
-	int n = array_sz, lda = array_sz, ldvl = array_sz, ldvr = array_sz, info, lwork;
-	double wkopt;
-	double* work;
-	double vl[ldvl*n];
-/*	double scale[n], rconde[n], rcondv[n];
-	double abnrm = 0;
-	int ilo = 1, ihi = n;
-	int iwork[2*n - 2];
-*/
+	INIT_FAIL(fail);
 
-	lwork = -1;
+	if (!(iter = NAG_ALLOC(n, Integer)) ||
+			!(r = NAG_ALLOC(n, Complex)) ||
+			!(v = NAG_ALLOC(n*n, Complex))) {
+		printf("Allocation failure\n");
+		return -1;
+	}
+	tda = n;
+	tdv = n;
 
-	dgeev("Vectors", "Vectors", &n, a, &lda, wr, wi, vl, &ldvl, vr, &ldvr,
-			&wkopt, &lwork, &info);
-
-//	dgeevx("B", "V", "V", "B", &n, a, &lda, wr, wi, vl, &ldvl, vr, &ldvr,
-//			ilo, ihi, scale, &abnrm, rconde, rcondv, &wkopt, &lwork, iwork, &info);
-
-	lwork = (int)wkopt;
-	work = (double*)calloc(lwork, sizeof(double));
-//	work = (double*)calloc(2 * n * (n + 6), sizeof(double));
-
-	dgeev("Vectors", "Vectors", &n, a, &lda, wr, wi, vl, &ldvl, vr, &ldvr,
-			work, &lwork, &info);
-
-//	dgeevx("B", "V", "V", "B", &n, a, &lda, wr, wi, vl, &ldvl, vr, &ldvr,
-//			ilo, ihi, scale, &abnrm, rconde, rcondv, work, &lwork, iwork, &info);
-
-	if(info > 0) {
-		printf("The algorithm failed to compute eigenvalues.\n");
+	nag_real_eigensystem(n, a, tda, r, v, tdv, iter, &fail);
+	if (fail.code != NE_NOERROR) {
+		printf("Error from nag_real_eigensystem (f02agc).\n%s\n", fail.message);
 		return -1;
 	}
 
-	free((void*)work);
+	for (i = 0; i < n; i++){
+		wr[i] = r[i].re;;
+		if (fabs(r[i].im) > ACCURACY)
+			printf(">>>>>>>>>> Complex eigen value");
+		for (j = 0; j < n; j++) {
+			vr[i+j*n] = v[j+i*n].re;
+			if (fabs(v[j+i*n].im) > ACCURACY)
+				printf(">>>>>>>>>> Complex eigen vector");
+		}
+	}
+
+	NAG_FREE(iter);
+	NAG_FREE(r);
+	NAG_FREE(v);
 	return 0;
 }
 

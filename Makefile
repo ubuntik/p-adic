@@ -1,8 +1,9 @@
 MKDIR_P = mkdir -p
-CC = gcc
-LIBS = -lm
+CC = sudo gcc
+NAG_DIR = /opt/NAG/clmi623dgl
+LIBS = -lm -I${NAG_DIR}/include -L${NAG_DIR}/lib ${NAG_DIR}/lib/libnagc_nag.a
 LOGLVL = 0
-CFLAGS = -g -Wall -I${SRC_DIR} -DLOG_LEVEL=${LOGLVL}
+CFLAGS = -g -Wall -I${SRC_DIR} -DLOG_LEVEL=${LOGLVL} -m64 -DNAG_INT
 
 OBJ_DIR = ./obj
 BIN_DIR = ./bin
@@ -15,9 +16,10 @@ P_ARITHM_O = ${OBJ_DIR}/p-def.o ${OBJ_DIR}/p-arithm.o
 P_ANALYSIS_O = ${OBJ_DIR}/p-def.o ${OBJ_DIR}/p-arithm.o ${OBJ_DIR}/p-analysis.o
 P_CAUCHY_O = ${OBJ_DIR}/p-def.o ${OBJ_DIR}/p-arithm.o ${OBJ_DIR}/p-analysis.o ${OBJ_DIR}/cauchy.o
 
+
 .PHONY: directories
 all: directories test1 test2 test3 test4 test5 test6 test7 test8 test9
-directories: ${OBJ_DIR} ${BIN_DIR} ${SRC_DIR} ${TESTS_DIR} ${RES_DIR}
+directories: ${OBJ_DIR} ${BIN_DIR} ${SRC_DIR} ${TESTS_DIR} ${RES_DIR} ${ENV}
 
 ${OBJ_DIR}:
 	${MKDIR_P} ${OBJ_DIR}
@@ -27,6 +29,9 @@ ${BIN_DIR}:
 
 ${RES_DIR}:
 	${MKDIR_P} ${RES_DIR}
+
+${ENV}:
+	DYLD_LIBRARY_PATH=/opt/NAG/clmi623dgl/lib; export DYLD_LIBRARY_PATH
 
 # To obtain object files
 %.o: ${SRC_DIR}/%.c
@@ -57,7 +62,7 @@ test7: directories test7.o p-def.o
 	$(CC) $(CFLAGS) ${OBJ_DIR}/test7.o ${P_DEF_O} -o ${BIN_DIR}/test7 $(LIBS)
 
 test8: directories test8.o p-def.o p-arithm.o p-analysis.o cauchy.o
-	$(CC) $(CFLAGS) -llapack ${OBJ_DIR}/test8.o ${P_CAUCHY_O} -o ${BIN_DIR}/test8 $(LIBS)
+	$(CC) $(CFLAGS) ${OBJ_DIR}/test8.o ${P_CAUCHY_O} -o ${BIN_DIR}/test8 $(LIBS)
 
 test9: directories test9.o p-def.o p-arithm.o p-analysis.o cauchy.o
 	$(CC) $(CFLAGS) -llapack ${OBJ_DIR}/test9.o ${P_CAUCHY_O} -o ${BIN_DIR}/test9 $(LIBS)

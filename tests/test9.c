@@ -5,12 +5,13 @@
 
 #include <cauchy.h>
 
-#define G_MIN (-1)
+#define G_MIN (-3)
 #define G_CHY (0)
 #define G_MAX (1)
 
-#define ALPHA 2
-#define BETA 0
+#define ALPHA 1.5
+#define BETA 20
+//#define BETA 0.8777 // 0.87769
 
 static const int gmin = G_MIN;
 static const int gmax = G_MAX;

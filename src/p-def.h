@@ -7,7 +7,7 @@
 #include <complex.h>
 #include <stdint.h>
 
-#define P 2
+#define P 3
 #define PI 3.14159265358979323846
 
 //Workaround:
